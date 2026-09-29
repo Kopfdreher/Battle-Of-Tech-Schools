@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Listing {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String
+  address      String
+  rentAmount   Decimal       @map("rent_amount") @db.Decimal(10, 2)
+  rooms        Int
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  applications Application[]
+
+  @@map("listings")
+}
+
+model Application {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId             String   @map("listing_id") @db.Uuid
+  applicantName         String   @map("applicant_name")
+  income                Decimal  @db.Decimal(10, 2)
+  hasPermanentContract  Boolean  @map("has_permanent_contract")
+  householdSize         Int      @map("household_size")
+  hasMietschuldenfrei   Boolean  @map("has_mietschuldenfrei")
+  hasSchufa             Boolean  @map("has_schufa")
+  rawMessage            String   @map("raw_message")
+  score                 Decimal? @db.Decimal(5, 2)
+  riskFlags             Json     @default("[]") @map("risk_flags")
+  status                String   @default("pending")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  listing               Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("applications")
+}
