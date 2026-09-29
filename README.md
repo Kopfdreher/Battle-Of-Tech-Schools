@@ -11,9 +11,18 @@ cp .env.example .env.local
 
 Fill in:
 
-- `DATABASE_URL` — Supabase Postgres connection string (used by the app)
+- `DATABASE_URL` — Postgres connection string (used by the app and by `prisma generate`)
 - `N8N_WEBHOOK_URL` — webhook that receives `{ "applicationId": "<uuid>" }`
-- `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` — for the Supabase dashboard or a later client; the app does not read them
+
+## Vercel
+
+Deploy the `nextjs-rebuild` branch. In the Vercel project:
+
+- Production branch: `nextjs-rebuild`
+- Root directory: repository root (leave it empty; do not use `apps/web`)
+- Environment variables: `DATABASE_URL` and `N8N_WEBHOOK_URL`
+
+`main` is the old Turborepo and has no `next` dependency, so a deploy of that branch fails with “No Next.js version detected.” `prisma generate` runs during install and again before `next build`. The build fails if `DATABASE_URL` is missing.
 
 Apply the schema in the Supabase SQL editor with [`prisma/sql/0000_init.sql`](prisma/sql/0000_init.sql), or push it from this repo:
 
