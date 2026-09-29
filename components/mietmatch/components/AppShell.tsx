@@ -20,6 +20,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
     { to: '/import', label: t('nav.import'), end: false },
     { to: '/address', label: t('nav.address'), end: false },
     { to: '/requirements', label: t('nav.criteria'), end: false },
+    { to: '/settings', label: t('nav.settings'), end: false },
   ] as const
 
   return (
