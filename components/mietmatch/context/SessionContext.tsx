@@ -4,8 +4,9 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { SAMPLE_APPLICANTS } from '../data/applicants'
 import { LISTINGS } from '../data/listings'
 import { defaultRequirements, sanitizeRequirements } from '../data/requirements'
-import { authenticate, findUser, register } from '../lib/auth'
+import { authenticate, register } from '../lib/auth'
 import { buildDemoCsv, parseApplicantCsv } from '../lib/csv'
+import { authClient } from '@/lib/auth-client'
 import {
   applicantsKey,
   flatKey,
@@ -100,22 +101,6 @@ function emptyState(): SessionState {
   }
 }
 
-function loadState(): SessionState {
-  const userId = readJson<string | null>(sessionKey, null)
-  const user = userId ? findUser(userId) : null
-  if (!user) return emptyState()
-  return {
-    user,
-    requirements: sanitizeRequirements(readJson<unknown>(requirementsKey(user.id), null)),
-    flat: loadFlat(user.id),
-    applicants: loadApplicants(user.id),
-    mailbox: loadMailbox(user.id),
-    invitedIds: loadInvited(user.id),
-    invitations: loadInvitations(user.id),
-    marks: loadMarks(user.id),
-  }
-}
-
 type ServerBoard = { flat: LandlordFlat; applicants: Applicant[] }
 
 function withBoard(state: SessionState, board: ServerBoard | null): SessionState {
@@ -132,11 +117,32 @@ export function SessionProvider({
 }) {
   const [state, setState] = useState<SessionState>(() => withBoard(emptyState(), serverBoard))
   const [ready, setReady] = useState(false)
+  const session = authClient.useSession()
 
   useEffect(() => {
-    setState(withBoard(loadState(), serverBoard))
+    if (session.isPending) return;
+    
+    const betterUser = session.data?.user || null;
+    const userId = betterUser ? betterUser.id : null;
+
+    if (!betterUser) {
+      setState(withBoard(emptyState(), serverBoard))
+      setReady(true)
+      return
+    }
+
+    setState(withBoard({
+      user: { id: betterUser.id, name: betterUser.name, email: betterUser.email },
+      requirements: sanitizeRequirements(readJson<unknown>(requirementsKey(userId!), null)),
+      flat: loadFlat(userId!),
+      applicants: loadApplicants(userId!),
+      mailbox: loadMailbox(userId!),
+      invitedIds: loadInvited(userId!),
+      invitations: loadInvitations(userId!),
+      marks: loadMarks(userId!),
+    }, serverBoard))
     setReady(true)
-  }, [serverBoard])
+  }, [serverBoard, session.isPending, session.data?.user])
 
   useEffect(() => {
     if (!state.user) return
@@ -176,32 +182,15 @@ export function SessionProvider({
   }, [state.user, state.marks])
 
   const signup = useCallback(async (name: string, email: string, password: string) => {
-    const user = await register(name, email, password)
-    writeJson(sessionKey, user.id)
-    setState(withBoard({ ...emptyState(), user, requirements: defaultRequirements }, serverBoard))
-  }, [serverBoard])
+    await register(name, email, password)
+  }, [])
 
   const login = useCallback(async (email: string, password: string) => {
-    const user = await authenticate(email, password)
-    writeJson(sessionKey, user.id)
-    setState(
-      withBoard(
-        {
-          user,
-          requirements: sanitizeRequirements(readJson<unknown>(requirementsKey(user.id), null)),
-          flat: loadFlat(user.id),
-          applicants: loadApplicants(user.id),
-          mailbox: loadMailbox(user.id),
-          invitedIds: loadInvited(user.id),
-          invitations: loadInvitations(user.id),
-          marks: loadMarks(user.id),
-        },
-        serverBoard,
-      ),
-    )
-  }, [serverBoard])
+    await authenticate(email, password)
+  }, [])
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await authClient.signOut()
     removeKey(sessionKey)
     setState(emptyState())
   }, [])
