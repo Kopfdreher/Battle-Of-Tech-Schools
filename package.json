@@ -10,7 +10,9 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "test:verify": "node --test tests/authenticity.test.mjs",
+    "verify:agent": "python3 -m uvicorn main:app --port 8001 --app-dir verify-agent"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
