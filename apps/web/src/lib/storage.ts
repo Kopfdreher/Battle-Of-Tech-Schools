@@ -21,6 +21,10 @@ export function invitedKey(userId: string) {
   return `kiezbrief.landlord.invited.${userId}`
 }
 
+export function invitationsKey(userId: string) {
+  return `kiezbrief.landlord.invitations.${userId}`
+}
+
 export function marksKey(userId: string) {
   return `kiezbrief.landlord.marks.${userId}`
 }

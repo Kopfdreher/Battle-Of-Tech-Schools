@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Link } from '@tanstack/react-router'
 import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
 import type { ListGroup } from './ApplicantRow.tsx'
@@ -27,9 +28,8 @@ type Props = {
   flat: LandlordFlat
   ranked: Ranked[]
   landlordName: string
+  group: ListGroup
 }
-
-const GROUP_IDS: ListGroup[] = ['all', 'like', 'unsure']
 
 function defaultVisitDate() {
   const date = new Date()
@@ -54,11 +54,10 @@ function formatVisit(date: string, time: string) {
   }
 }
 
-export function InvitePanel({ flat, ranked, landlordName }: Props) {
-  const { invitedIds, marks, markInvited, clearInvited } = useSession()
+export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
+  const { invitedIds, marks, scheduleInvitations, clearInvited } = useSession()
   const { t } = useLocale()
   const invited = useMemo(() => new Set(invitedIds), [invitedIds])
-  const [group, setGroup] = useState<ListGroup>('all')
 
   function groupLabel(id: ListGroup) {
     if (id === 'like') return t('invite.group.like')
@@ -102,14 +101,6 @@ export function InvitePanel({ flat, ranked, landlordName }: Props) {
   }, [countText, maxBatch])
 
   const recipients = useMemo(() => pending.slice(0, count), [pending, count])
-
-  const batchLabel = useMemo(() => {
-    if (recipients.length === 0) return null
-    return {
-      fromRank: recipients[0]!.number,
-      toRank: recipients[recipients.length - 1]!.number,
-    }
-  }, [recipients])
 
   function clampCountText() {
     if (maxBatch === 0) return
@@ -163,7 +154,11 @@ export function InvitePanel({ flat, ranked, landlordName }: Props) {
       setProgress(Math.round((sent / total) * 100))
       if (sent >= total) {
         window.clearInterval(timer)
-        markInvited(invitees.map((row) => row.applicant.id))
+        scheduleInvitations({
+          applicantIds: invitees.map((row) => row.applicant.id),
+          date,
+          time,
+        })
         setBatches((current) => [
           {
             id: `invite-${Date.now().toString(36)}`,
@@ -192,50 +187,16 @@ export function InvitePanel({ flat, ranked, landlordName }: Props) {
           <h2>{t('invite.title')}</h2>
           <p className="lede">{t('invite.lede')}</p>
         </div>
-        {invitedIds.length > 0 ? (
-          <button type="button" className="btn ghost" onClick={clearInvited} disabled={sending}>
-            {t('invite.reset')}
-          </button>
-        ) : null}
-      </div>
-
-      <div className="invite-group-pick" role="group" aria-label={t('invite.kicker')}>
-        {GROUP_IDS.map((id) => {
-          const size =
-            id === 'like'
-              ? ranked.filter((row) => marks[row.applicant.id] === 'like').length
-              : id === 'unsure'
-                ? ranked.filter((row) => marks[row.applicant.id] === 'unsure').length
-                : ranked.length
-          return (
-            <button
-              key={id}
-              type="button"
-              className={group === id ? 'btn primary' : 'btn'}
-              disabled={sending}
-              onClick={() => setGroup(id)}
-            >
-              {groupLabel(id)} ({size})
+        <div className="invite-send-links">
+          <Link className="text-button" to="/appointments">
+            {t('invite.manage')}
+          </Link>
+          {invitedIds.length > 0 ? (
+            <button type="button" className="btn ghost" onClick={clearInvited} disabled={sending}>
+              {t('invite.reset')}
             </button>
-          )
-        })}
-      </div>
-
-      <div className="invite-batch-meta">
-        <p>
-          {t('invite.meta', {
-            group: groupLabel(group),
-            invited: invitedIds.length,
-            pending: pending.length,
-          })}
-        </p>
-        {batchLabel ? (
-          <p className="hint">
-            {t('invite.batchRanks', { from: batchLabel.fromRank, to: batchLabel.toRank })}
-          </p>
-        ) : (
-          <p className="hint">{pending.length === 0 ? t('invite.batchEmpty') : t('invite.batchHint')}</p>
-        )}
+          ) : null}
+        </div>
       </div>
 
       <form className="invite-send-form" onSubmit={onSubmit}>
@@ -303,29 +264,13 @@ export function InvitePanel({ flat, ranked, landlordName }: Props) {
       </form>
 
       {recipients.length > 0 ? (
-        <div className="invite-preview">
-          <p className="kicker">
-            {groupLabel(group)} · ranks #{batchLabel?.fromRank}–#{batchLabel?.toRank} · {formatVisit(date, time)}
-          </p>
-          <ul className="invite-preview-list">
-            {recipients.map((row) => (
-              <li key={row.applicant.id}>
-                <span className="criteria-rank">{row.number}</span>
-                <strong>{row.applicant.displayName}</strong>
-                <span>
-                  {row.verdict.matchRate}% · {row.applicant.email}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="hint invite-mail-sample">
-            {t('invite.mail', {
-              name: landlordName,
-              address: flat.address,
-              when: formatVisit(date, time),
-            })}
-          </p>
-        </div>
+        <p className="hint invite-mail-sample">
+          {t('invite.mail', {
+            name: landlordName,
+            address: flat.address,
+            when: formatVisit(date, time),
+          })}
+        </p>
       ) : null}
 
       {sending ? (

@@ -62,6 +62,15 @@ export type MailboxConnection = {
   connectedAt: string
 }
 
+/** One applicant invited to a viewing slot. */
+export type Invitation = {
+  id: string
+  applicantId: string
+  date: string
+  time: string
+  sentAt: string
+}
+
 export type PlaceRef = {
   name: string
   meters: number

@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppAddressRouteImport } from './routes/_app/address'
+import { Route as AppAppointmentsRouteImport } from './routes/_app/appointments'
 import { Route as AppImportRouteImport } from './routes/_app/import'
 import { Route as AppRequirementsRouteImport } from './routes/_app/requirements'
 import { Route as AppApplicantsIdRouteImport } from './routes/_app/applicants.$id'
@@ -48,6 +49,11 @@ const AppAddressRoute = AppAddressRouteImport.update({
   path: '/address',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAppointmentsRoute = AppAppointmentsRouteImport.update({
+  id: '/appointments',
+  path: '/appointments',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppImportRoute = AppImportRouteImport.update({
   id: '/import',
   path: '/import',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/address': typeof AppAddressRoute
+  '/appointments': typeof AppAppointmentsRoute
   '/import': typeof AppImportRoute
   '/requirements': typeof AppRequirementsRoute
   '/applicants/$id': typeof AppApplicantsIdRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/address': typeof AppAddressRoute
+  '/appointments': typeof AppAppointmentsRoute
   '/import': typeof AppImportRoute
   '/requirements': typeof AppRequirementsRoute
   '/': typeof AppIndexRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/_app/address': typeof AppAddressRoute
+  '/_app/appointments': typeof AppAppointmentsRoute
   '/_app/import': typeof AppImportRoute
   '/_app/requirements': typeof AppRequirementsRoute
   '/_app/': typeof AppIndexRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/address'
+    | '/appointments'
     | '/import'
     | '/requirements'
     | '/applicants/$id'
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/address'
+    | '/appointments'
     | '/import'
     | '/requirements'
     | '/'
@@ -124,6 +135,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/_app/address'
+    | '/_app/appointments'
     | '/_app/import'
     | '/_app/requirements'
     | '/_app/'
@@ -181,6 +193,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAddressRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/appointments': {
+      id: '/_app/appointments'
+      path: '/appointments'
+      fullPath: '/appointments'
+      preLoaderRoute: typeof AppAppointmentsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/import': {
       id: '/_app/import'
       path: '/import'
@@ -207,6 +226,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAddressRoute: typeof AppAddressRoute
+  AppAppointmentsRoute: typeof AppAppointmentsRoute
   AppImportRoute: typeof AppImportRoute
   AppRequirementsRoute: typeof AppRequirementsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -215,6 +235,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAddressRoute: AppAddressRoute,
+  AppAppointmentsRoute: AppAppointmentsRoute,
   AppImportRoute: AppImportRoute,
   AppRequirementsRoute: AppRequirementsRoute,
   AppIndexRoute: AppIndexRoute,

@@ -7,6 +7,7 @@ import { buildDemoCsv, parseApplicantCsv } from '../lib/csv.ts'
 import {
   applicantsKey,
   flatKey,
+  invitationsKey,
   invitedKey,
   mailboxKey,
   marksKey,
@@ -16,7 +17,15 @@ import {
   sessionKey,
   writeJson,
 } from '../lib/storage.ts'
-import type { Applicant, LandlordFlat, MailboxConnection, MailboxProvider, Requirements, User } from '../types.ts'
+import type {
+  Applicant,
+  Invitation,
+  LandlordFlat,
+  MailboxConnection,
+  MailboxProvider,
+  Requirements,
+  User,
+} from '../types.ts'
 import { SessionContext, type ApplicantMark, type SessionValue } from './session.ts'
 
 type SessionState = {
@@ -26,6 +35,7 @@ type SessionState = {
   applicants: Applicant[]
   mailbox: MailboxConnection | null
   invitedIds: string[]
+  invitations: Invitation[]
   marks: Record<string, ApplicantMark>
 }
 
@@ -49,6 +59,22 @@ function loadInvited(userId: string) {
   return Array.isArray(raw) ? raw.filter((id) => typeof id === 'string') : []
 }
 
+function isInvitation(value: unknown): value is Invitation {
+  if (!value || typeof value !== 'object') return false
+  const item = value as Invitation
+  return (
+    typeof item.id === 'string' &&
+    typeof item.applicantId === 'string' &&
+    typeof item.date === 'string' &&
+    typeof item.time === 'string' &&
+    typeof item.sentAt === 'string'
+  )
+}
+
+function loadInvitations(userId: string) {
+  return readJson<unknown[]>(invitationsKey(userId), []).filter(isInvitation)
+}
+
 function loadMarks(userId: string): Record<string, ApplicantMark> {
   const raw = readJson<Record<string, unknown>>(marksKey(userId), {})
   if (!raw || typeof raw !== 'object') return {}
@@ -67,6 +93,7 @@ function emptyState(): SessionState {
     applicants: [],
     mailbox: null,
     invitedIds: [],
+    invitations: [],
     marks: {},
   }
 }
@@ -82,6 +109,7 @@ function loadState(): SessionState {
     applicants: loadApplicants(user.id),
     mailbox: loadMailbox(user.id),
     invitedIds: loadInvited(user.id),
+    invitations: loadInvitations(user.id),
     marks: loadMarks(user.id),
   }
 }
@@ -118,6 +146,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!state.user) return
+    writeJson(invitationsKey(state.user.id), state.invitations)
+  }, [state.user, state.invitations])
+
+  useEffect(() => {
+    if (!state.user) return
     writeJson(marksKey(state.user.id), state.marks)
   }, [state.user, state.marks])
 
@@ -137,6 +170,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       applicants: loadApplicants(user.id),
       mailbox: loadMailbox(user.id),
       invitedIds: loadInvited(user.id),
+      invitations: loadInvitations(user.id),
       marks: loadMarks(user.id),
     })
   }, [])
@@ -156,12 +190,19 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       id: `flat-${Date.now().toString(36)}`,
       addedAt: new Date().toISOString(),
     }
-    setState((current) => ({ ...current, flat, invitedIds: [], marks: {} }))
+    setState((current) => ({ ...current, flat, invitedIds: [], invitations: [], marks: {} }))
     return flat
   }, [])
 
   const clearFlat = useCallback(() => {
-    setState((current) => ({ ...current, flat: null, applicants: [], invitedIds: [], marks: {} }))
+    setState((current) => ({
+      ...current,
+      flat: null,
+      applicants: [],
+      invitedIds: [],
+      invitations: [],
+      marks: {},
+    }))
   }, [])
 
   const addApplicant = useCallback((draft: Omit<Applicant, 'id' | 'appliedAt'>) => {
@@ -181,6 +222,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         ...current,
         applicants: current.applicants.filter((item) => item.id !== id),
         invitedIds: current.invitedIds.filter((item) => item !== id),
+        invitations: current.invitations.filter((item) => item.applicantId !== id),
         marks,
       }
     })
@@ -197,6 +239,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         ...current,
         applicants: mode === 'append' ? [...stamped, ...current.applicants] : stamped,
         invitedIds: mode === 'replace' ? [] : current.invitedIds,
+        invitations: mode === 'replace' ? [] : current.invitations,
         marks: mode === 'replace' ? {} : current.marks,
       }))
       return stamped.length
@@ -210,7 +253,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       id: `sample-${index}-${Date.now().toString(36)}`,
       appliedAt: new Date(Date.now() - index * 36e5).toISOString(),
     }))
-    setState((current) => ({ ...current, applicants: stamped, invitedIds: [], marks: {} }))
+    setState((current) => ({
+      ...current,
+      applicants: stamped,
+      invitedIds: [],
+      invitations: [],
+      marks: {},
+    }))
   }, [])
 
   const loadDemoBoard = useCallback(() => {
@@ -241,6 +290,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       flat,
       applicants: stamped,
       invitedIds: [],
+      invitations: [],
       marks: {},
       mailbox: current.user
         ? {
@@ -278,8 +328,82 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const scheduleInvitations = useCallback(
+    (input: { applicantIds: string[]; date: string; time: string }) => {
+      const sentAt = new Date().toISOString()
+      setState((current) => {
+        const invited = new Set(current.invitedIds)
+        const additions: Invitation[] = []
+        for (const applicantId of input.applicantIds) {
+          if (invited.has(applicantId)) continue
+          invited.add(applicantId)
+          additions.push({
+            id: `inv-${sentAt}-${applicantId}`,
+            applicantId,
+            date: input.date,
+            time: input.time,
+            sentAt,
+          })
+        }
+        if (additions.length === 0) return current
+        return {
+          ...current,
+          invitedIds: [...invited],
+          invitations: [...additions, ...current.invitations],
+        }
+      })
+    },
+    [],
+  )
+
+  const rescheduleSlot = useCallback(
+    (slot: { date: string; time: string }, next: { date: string; time: string }) => {
+      if (!next.date || !next.time) return
+      if (slot.date === next.date && slot.time === next.time) return
+      setState((current) => ({
+        ...current,
+        invitations: current.invitations.map((item) =>
+          item.date === slot.date && item.time === slot.time
+            ? { ...item, date: next.date, time: next.time }
+            : item,
+        ),
+      }))
+    },
+    [],
+  )
+
+  const cancelInvitation = useCallback((id: string) => {
+    setState((current) => {
+      const invitation = current.invitations.find((item) => item.id === id)
+      if (!invitation) return current
+      return {
+        ...current,
+        invitations: current.invitations.filter((item) => item.id !== id),
+        invitedIds: current.invitedIds.filter((item) => item !== invitation.applicantId),
+      }
+    })
+  }, [])
+
+  const cancelSlot = useCallback((slot: { date: string; time: string }) => {
+    setState((current) => {
+      const removed = new Set(
+        current.invitations
+          .filter((item) => item.date === slot.date && item.time === slot.time)
+          .map((item) => item.applicantId),
+      )
+      if (removed.size === 0) return current
+      return {
+        ...current,
+        invitations: current.invitations.filter(
+          (item) => item.date !== slot.date || item.time !== slot.time,
+        ),
+        invitedIds: current.invitedIds.filter((item) => !removed.has(item)),
+      }
+    })
+  }, [])
+
   const clearInvited = useCallback(() => {
-    setState((current) => ({ ...current, invitedIds: [] }))
+    setState((current) => ({ ...current, invitedIds: [], invitations: [] }))
   }, [])
 
   const setApplicantMark = useCallback((id: string, mark: ApplicantMark | null) => {
@@ -309,6 +433,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       connectMailbox,
       disconnectMailbox,
       markInvited,
+      scheduleInvitations,
+      rescheduleSlot,
+      cancelInvitation,
+      cancelSlot,
       clearInvited,
       setApplicantMark,
     }),
@@ -328,6 +456,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       connectMailbox,
       disconnectMailbox,
       markInvited,
+      scheduleInvitations,
+      rescheduleSlot,
+      cancelInvitation,
+      cancelSlot,
       clearInvited,
       setApplicantMark,
     ],

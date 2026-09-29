@@ -1,5 +1,6 @@
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
+import mascotUrl from '../assets/mascot.png'
 import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
 import { Brand } from './Brand.tsx'
@@ -14,6 +15,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
 
   const links = [
     { to: '/', label: t('nav.shortlist'), end: true },
+    { to: '/appointments', label: t('nav.appointments'), end: false },
     { to: '/import', label: t('nav.import'), end: false },
     { to: '/address', label: t('nav.address'), end: false },
     { to: '/requirements', label: t('nav.criteria'), end: false },
@@ -22,7 +24,10 @@ export function AppShell({ children }: { children?: ReactNode }) {
   return (
     <div className="shell">
       <aside className="side">
-        <Brand />
+        <div className="side-top">
+          <Brand />
+          <LanguageSwitcher compact />
+        </div>
         <nav className="nav" aria-label={t('nav.main')}>
           {links.map((link) => {
             const active = link.end ? pathname === link.to : pathname.startsWith(link.to)
@@ -38,7 +43,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
           })}
         </nav>
         <div className="side-foot">
-          <LanguageSwitcher />
+          <img className="side-mascot" src={mascotUrl} alt="" />
           <ProfileMenu />
         </div>
       </aside>

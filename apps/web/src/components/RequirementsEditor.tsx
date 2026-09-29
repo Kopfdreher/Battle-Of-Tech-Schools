@@ -1,170 +1,258 @@
-import { type CriterionId, type Requirements } from '../types.ts'
-import {
-  CRITERIA_SUGGESTIONS,
-  PRESETS,
-  defaultRequirements,
-  sameRequirements,
-  toggleCriterion,
-} from '../data/requirements.ts'
+import { Link } from '@tanstack/react-router'
+import { PRESETS, defaultRequirements, sameRequirements } from '../data/requirements.ts'
 import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
+import type { CriterionId, Requirements } from '../types.ts'
 
-type SliderKey = 'minIncomeMultiple' | 'maxHouseholdOverRooms'
-
-const tuners: {
-  key: SliderKey
-  criterion: CriterionId
-  label: string
-  min: number
-  max: number
-  step: number
-  format: (value: number) => string
-}[] = [
-  {
-    key: 'minIncomeMultiple',
-    criterion: 'affordability',
-    label: 'Min income ÷ warm rent',
-    min: 1,
-    max: 6,
-    step: 0.1,
-    format: (value) => `${value.toFixed(1)}×`,
-  },
-  {
-    key: 'maxHouseholdOverRooms',
-    criterion: 'household',
-    label: 'Extra people over room count',
-    min: 0,
-    max: 3,
-    step: 1,
-    format: (value) => (value === 0 ? 'Exact fit' : `+${value}`),
-  },
-]
-
-const toggles: {
-  key: keyof Pick<
-    Requirements,
-    | 'requirePermanentContract'
-    | 'requireArrearsLetter'
-    | 'smokingHardNo'
-    | 'requireIncomeProof'
-    | 'requireEmploymentProof'
-    | 'preferSchufa'
-  >
-  criterion: CriterionId
-  label: string
-}[] = [
-  { key: 'requirePermanentContract', criterion: 'contract', label: 'Require permanent contract' },
-  { key: 'requireArrearsLetter', criterion: 'arrearsLetter', label: 'Require no-arrears letter' },
-  { key: 'smokingHardNo', criterion: 'smoking', label: 'Smoking is a hard no' },
-  { key: 'requireIncomeProof', criterion: 'documents', label: 'Require income proof' },
-  { key: 'requireEmploymentProof', criterion: 'documents', label: 'Require employment proof' },
-  { key: 'preferSchufa', criterion: 'schufa', label: 'Prefer SCHUFA on file' },
-]
+const FIXED: CriterionId[] = ['employed', 'compactHousehold', 'fullEvidence']
 
 export function RequirementsEditor() {
-  const { requirements, updateRequirements, flat, applicants } = useSession()
+  const { requirements, updateRequirements, flat } = useSession()
   const { t } = useLocale()
+  const selected = requirements.selected
+  const fixed = selected.filter((id) => FIXED.includes(id))
 
   function patch(partial: Partial<Requirements>) {
     updateRequirements({ ...requirements, ...partial })
   }
 
+  const incomeNeed = flat ? Math.round(flat.rentWarm * requirements.minIncomeMultiple) : null
+  const householdCap = flat ? Math.floor(flat.rooms + requirements.maxHouseholdOverRooms) : null
+
   return (
     <div className="req-editor">
-      <section className="panel">
-        <p className="kicker">Presets</p>
-        <div className="preset-row">
-          {PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              className={
-                sameRequirements(requirements, preset.requirements) ? 'btn primary' : 'btn'
-              }
-              onClick={() => updateRequirements(preset.requirements)}
-            >
-              {preset.label}
-            </button>
-          ))}
-          <button type="button" className="btn ghost" onClick={() => updateRequirements(defaultRequirements)}>
-            Reset
-          </button>
+      <section className="panel req-limits">
+        <div className="req-limits-head">
+          <div>
+            <p className="kicker">{t('requirements.onShortlist')}</p>
+            <h2>{t('requirements.limitsTitle')}</h2>
+          </div>
+          <Link className="text-button" to="/">
+            {t('requirements.editList')}
+          </Link>
         </div>
-      </section>
 
-      <section className="panel">
-        <p className="kicker">Required criteria</p>
-        <h2>What you weigh for this flat</h2>
-        <p className="hint">
-          Scoring uses structured fields only. Free-text messages are never part of the match — that keeps screening
-          fairer under German anti-discrimination rules.
-        </p>
-        <ul className="criteria-pick">
-          {CRITERIA_SUGGESTIONS.map((item) => {
-            const on = requirements.selected.includes(item.id)
-            return (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className={on ? 'choice on' : 'choice'}
-                  onClick={() => updateRequirements(toggleCriterion(requirements, item.id))}
-                >
-                  <strong>{t(`criterion.${item.id}`)}</strong>
-                  <span>{t(`criterion.short.${item.id}`)}</span>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      </section>
-
-      <section className="panel">
-        <p className="kicker">Limits</p>
-        <h2>Tune the thresholds</h2>
-        {flat ? (
-          <p className="hint">
-            Against {flat.address}: €{flat.rentWarm} warm · {flat.rooms} rooms · {applicants.length} applicants on
-            the board.
-          </p>
+        {selected.length === 0 ? (
+          <p className="hint">{t('requirements.empty')}</p>
         ) : (
-          <p className="hint">Add your flat first so affordability and household fit use the real rent and rooms.</p>
+          <ol className="req-active">
+            {selected.map((id, index) => (
+              <li key={id}>
+                <span className="criteria-rank">{index + 1}</span>
+                {t(`criterion.${id}`)}
+              </li>
+            ))}
+          </ol>
         )}
-        <div className="tuner-list">
-          {tuners.map((tuner) => {
-            if (!requirements.selected.includes(tuner.criterion)) return null
-            const value = requirements[tuner.key]
-            return (
-              <label key={tuner.key} className="tuner">
-                <span>
-                  {tuner.label}
-                  <strong>{tuner.format(value)}</strong>
-                </span>
-                <input
-                  type="range"
-                  min={tuner.min}
-                  max={tuner.max}
-                  step={tuner.step}
-                  value={value}
-                  onChange={(event) => patch({ [tuner.key]: Number(event.target.value) })}
+
+        <div className="req-presets">
+          <p className="kicker">{t('requirements.presets')}</p>
+          <div className="filter-row">
+            {PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className={
+                  sameRequirements(requirements, preset.requirements) ? 'filter-chip on' : 'filter-chip'
+                }
+                onClick={() => updateRequirements(preset.requirements)}
+              >
+                {t(`requirements.preset.${preset.id}`)}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="filter-chip"
+              onClick={() => updateRequirements(defaultRequirements)}
+            >
+              {t('requirements.reset')}
+            </button>
+          </div>
+          <p className="hint">{t('requirements.presetHint')}</p>
+        </div>
+
+        <div className="req-rule-list">
+          {selected.map((id, index) => {
+            const rank = index + 1
+            if (id === 'affordability') {
+              return (
+                <article className="req-rule" key={id}>
+                  <div className="req-rule-top">
+                    <strong>
+                      <span className="criteria-rank">{rank}</span>
+                      {t('criterion.affordability')}
+                    </strong>
+                    <span>{requirements.minIncomeMultiple.toFixed(1)}×</span>
+                  </div>
+                  <label className="tuner">
+                    <span>{t('requirements.income')}</span>
+                    <input
+                      type="range"
+                      min={1}
+                      max={6}
+                      step={0.1}
+                      value={requirements.minIncomeMultiple}
+                      onChange={(event) => patch({ minIncomeMultiple: Number(event.target.value) })}
+                    />
+                  </label>
+                  <p className="hint">
+                    {flat && incomeNeed !== null
+                      ? t('requirements.incomeNeed', { rent: flat.rentWarm, need: incomeNeed })
+                      : t('requirements.noFlat')}
+                  </p>
+                </article>
+              )
+            }
+            if (id === 'household') {
+              return (
+                <article className="req-rule" key={id}>
+                  <div className="req-rule-top">
+                    <strong>
+                      <span className="criteria-rank">{rank}</span>
+                      {t('criterion.household')}
+                    </strong>
+                    <span>
+                      {requirements.maxHouseholdOverRooms === 0
+                        ? t('requirements.exact')
+                        : `+${requirements.maxHouseholdOverRooms}`}
+                    </span>
+                  </div>
+                  <label className="tuner">
+                    <span>{t('requirements.household')}</span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={3}
+                      step={1}
+                      value={requirements.maxHouseholdOverRooms}
+                      onChange={(event) => patch({ maxHouseholdOverRooms: Number(event.target.value) })}
+                    />
+                  </label>
+                  <p className="hint">
+                    {flat && householdCap !== null
+                      ? t('requirements.householdHint', { rooms: flat.rooms, people: householdCap })
+                      : t('requirements.noFlat')}
+                  </p>
+                </article>
+              )
+            }
+            if (id === 'contract') {
+              return (
+                <ToggleRule
+                  key={id}
+                  rank={rank}
+                  title={t('criterion.contract')}
+                  label={t('requirements.toggle.contract')}
+                  checked={requirements.requirePermanentContract}
+                  onChange={(checked) => patch({ requirePermanentContract: checked })}
                 />
-              </label>
-            )
-          })}
-          {toggles.map((toggle) => {
-            if (!requirements.selected.includes(toggle.criterion)) return null
-            return (
-              <label key={toggle.key} className="check-row">
-                <input
-                  type="checkbox"
-                  checked={requirements[toggle.key]}
-                  onChange={(event) => patch({ [toggle.key]: event.target.checked })}
+              )
+            }
+            if (id === 'arrearsLetter') {
+              return (
+                <ToggleRule
+                  key={id}
+                  rank={rank}
+                  title={t('criterion.arrearsLetter')}
+                  label={t('requirements.toggle.arrears')}
+                  checked={requirements.requireArrearsLetter}
+                  onChange={(checked) => patch({ requireArrearsLetter: checked })}
                 />
-                <span>{toggle.label}</span>
-              </label>
-            )
+              )
+            }
+            if (id === 'smoking') {
+              return (
+                <ToggleRule
+                  key={id}
+                  rank={rank}
+                  title={t('criterion.smoking')}
+                  label={t('requirements.toggle.smoking')}
+                  checked={requirements.smokingHardNo}
+                  onChange={(checked) => patch({ smokingHardNo: checked })}
+                />
+              )
+            }
+            if (id === 'documents') {
+              return (
+                <article className="req-rule" key={id}>
+                  <div className="req-rule-top">
+                    <strong>
+                      <span className="criteria-rank">{rank}</span>
+                      {t('criterion.documents')}
+                    </strong>
+                  </div>
+                  <label className="check-row">
+                    <input
+                      type="checkbox"
+                      checked={requirements.requireIncomeProof}
+                      onChange={(event) => patch({ requireIncomeProof: event.target.checked })}
+                    />
+                    <span>{t('requirements.toggle.incomeProof')}</span>
+                  </label>
+                  <label className="check-row">
+                    <input
+                      type="checkbox"
+                      checked={requirements.requireEmploymentProof}
+                      onChange={(event) => patch({ requireEmploymentProof: event.target.checked })}
+                    />
+                    <span>{t('requirements.toggle.employmentProof')}</span>
+                  </label>
+                </article>
+              )
+            }
+            if (id === 'schufa') {
+              return (
+                <ToggleRule
+                  key={id}
+                  rank={rank}
+                  title={t('criterion.schufa')}
+                  label={t('requirements.toggle.schufa')}
+                  checked={requirements.preferSchufa}
+                  onChange={(checked) => patch({ preferSchufa: checked })}
+                />
+              )
+            }
+            return null
           })}
         </div>
+
+        {fixed.length > 0 ? (
+          <p className="hint">
+            {t('requirements.fixed', {
+              names: fixed.map((id) => t(`criterion.${id}`)).join(', '),
+            })}
+          </p>
+        ) : null}
       </section>
     </div>
+  )
+}
+
+function ToggleRule({
+  rank,
+  title,
+  label,
+  checked,
+  onChange,
+}: {
+  rank: number
+  title: string
+  label: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <article className="req-rule">
+      <div className="req-rule-top">
+        <strong>
+          <span className="criteria-rank">{rank}</span>
+          {title}
+        </strong>
+      </div>
+      <label className="check-row">
+        <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+        <span>{label}</span>
+      </label>
+    </article>
   )
 }

@@ -85,10 +85,10 @@ export function InboxPage() {
         <>
           <header className="dash-head dash-head-compact">
             <div className="place-actions dash-head-actions">
-              <Link className="btn" to="/import">
+              <Link className="btn box-btn" to="/import">
                 {t('inbox.getApplicants')}
               </Link>
-              <button type="button" className="btn primary" onClick={loadDemoBoard}>
+              <button type="button" className="btn box-btn" onClick={loadDemoBoard}>
                 {t('inbox.reloadDemo')}
               </button>
             </div>
@@ -134,10 +134,10 @@ export function InboxPage() {
               </Link>
             </div>
             <div className="board-toolbar-actions">
-              <Link className="btn" to="/import">
+              <Link className="btn box-btn" to="/import">
                 {t('inbox.getApplicants')}
               </Link>
-              <button type="button" className="btn primary" onClick={loadDemoBoard}>
+              <button type="button" className="btn box-btn" onClick={loadDemoBoard}>
                 {t('inbox.reloadDemo')}
               </button>
             </div>
@@ -208,7 +208,7 @@ export function InboxPage() {
                       <button
                         key={id}
                         type="button"
-                        className={filter === id ? 'btn primary' : 'btn'}
+                        className={filter === id ? 'filter-chip on' : 'filter-chip'}
                         onClick={() => setFilter(id)}
                       >
                         {label}
@@ -271,7 +271,12 @@ export function InboxPage() {
             </section>
           </div>
 
-          <InvitePanel flat={flat} ranked={ranked} landlordName={user?.name ?? 'Landlord'} />
+          <InvitePanel
+            flat={flat}
+            ranked={ranked}
+            landlordName={user?.name ?? 'Landlord'}
+            group={listGroup}
+          />
         </>
       )}
     </div>
