@@ -20,10 +20,8 @@ export function InboxPage() {
   const [minPercent, setMinPercent] = useState(0)
 
   useEffect(() => {
-    if (user && !flat && applicants.length === 0) {
-      loadDemoBoard()
-    }
-  }, [user, flat, applicants.length, loadDemoBoard])
+	loadDemoBoard()
+  }, [])
 
   const ranked = useMemo(() => {
     if (!flat) return []
@@ -139,9 +137,6 @@ export function InboxPage() {
               <Link className="btn box-btn" to="/import">
                 {t('inbox.getApplicants')}
               </Link>
-              <button type="button" className="btn box-btn" onClick={loadDemoBoard}>
-                {t('inbox.reloadDemo')}
-              </button>
             </div>
           </header>
 
