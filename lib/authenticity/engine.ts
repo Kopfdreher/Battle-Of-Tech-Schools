@@ -139,6 +139,18 @@ function normalize(str: string): string {
     .replace(/\s+/g, " ");
 }
 
+/**
+ * Deterministic hash to distribute random applicants across realistic risk tiers
+ */
+function hashString(str: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash);
+}
+
 function computeTrust(
   metadata: CheckStatus,
   math: CheckStatus,
@@ -178,19 +190,114 @@ export function evaluateAuthenticity(
   const scenario =
     SEED_SCENARIOS[norm] ??
     (() => {
-      // Dynamic realistic simulation for any random tenant
-      const deductions = Math.round(incomeNum * 0.24);
+      // Deterministic realistic natural distribution based on applicant identity
+      const seedKey = input.id ? `${input.id}:${norm}` : norm;
+      const hash = hashString(seedKey);
+      const bucket = hash % 100;
+
+      // Tier 1: Clean compliant payroll (~72% of tenants)
+      if (bucket < 72) {
+        const producers = [
+          "DATEV Lohn und Gehalt 14.2",
+          "SAP HCM Payroll Engine 6.08",
+          "Workday Cloud Payroll EU",
+          "Sage HR Suite 2026",
+        ];
+        const producer = producers[hash % producers.length];
+        const deductionRate = 0.22 + ((hash % 10) * 0.01);
+        const deductions = Math.round(incomeNum * deductionRate);
+        const gross = incomeNum + deductions;
+        return {
+          documentLabel: "Payslip · Verified Payroll",
+          producer,
+          employeeName: input.applicantName,
+          employer: "Berlin Employer (verified in register)",
+          period: "August 2026",
+          gross,
+          deductions,
+          net: incomeNum,
+          layout: "PASS" as CheckStatus,
+        };
+      }
+
+      // Tier 2: Suspicious web editor / PDF optimizer (~14% of tenants)
+      if (bucket < 86) {
+        const editors = [
+          "iLovePDF (PDF/A-1b suite)",
+          "Smallpdf Web Engine",
+          "Sejda PDF Editor 7.1",
+        ];
+        const producer = editors[hash % editors.length];
+        const deductions = Math.round(incomeNum * 0.25);
+        const gross = incomeNum + deductions;
+        return {
+          documentLabel: "Payslip · Web tool re-exported",
+          producer,
+          employeeName: input.applicantName,
+          employer: "Digital Services Berlin GmbH",
+          period: "August 2026",
+          gross,
+          deductions,
+          net: incomeNum,
+          layout: "WARNING" as CheckStatus,
+        };
+      }
+
+      // Tier 3: Financial math discrepancy / inflated net income (~8% of tenants)
+      if (bucket < 94) {
+        const exaggeration = 350 + ((hash % 5) * 100);
+        const deductions = Math.round(incomeNum * 0.26);
+        const gross = (incomeNum - exaggeration) + deductions;
+        return {
+          documentLabel: "Payslip · Math inconsistency detected",
+          producer: "DATEV Lohn und Gehalt",
+          employeeName: input.applicantName,
+          employer: "Spree Logistics UG",
+          period: "August 2026",
+          gross,
+          deductions,
+          net: incomeNum,
+          layout: "PASS" as CheckStatus,
+        };
+      }
+
+      // Tier 4: Identity mismatch (~3% of tenants)
+      if (bucket < 97) {
+        const dummyNames = [
+          "Alexander Schmidt",
+          "Michael Weber",
+          "Sabine Becker",
+          "Thomas Mueller",
+        ];
+        const fakeName = dummyNames.find((n) => normalize(n) !== norm) || "Max Mustermann";
+        const deductions = Math.round(incomeNum * 0.24);
+        const gross = incomeNum + deductions;
+        return {
+          documentLabel: "Payslip · Name mismatch detected",
+          producer: "DATEV Lohn und Gehalt",
+          employeeName: fakeName,
+          employer: "Metropol Handelsgesellschaft mbH",
+          period: "August 2026",
+          gross,
+          deductions,
+          net: incomeNum,
+          layout: "PASS" as CheckStatus,
+        };
+      }
+
+      // Tier 5: Graphic design editor / canvas layers (~3% of tenants)
+      const deductions = Math.round(incomeNum * 0.20);
       const gross = incomeNum + deductions;
       return {
-        documentLabel: "Payslip · Standard Payroll",
-        producer: "DATEV Lohn und Gehalt 14.1",
+        documentLabel: "Payslip · Design software export",
+        producer: "Adobe Photoshop 25.0 / Canva",
         employeeName: input.applicantName,
-        employer: "Berlin Employer (on file)",
+        employer: "Creative Agency Berlin",
         period: "August 2026",
         gross,
         deductions,
         net: incomeNum,
-        layout: "PASS" as CheckStatus,
+        layout: "FAIL" as CheckStatus,
       };
     })();
 
