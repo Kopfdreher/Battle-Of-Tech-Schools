@@ -1,9 +1,14 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router'
+import { Outlet, createRootRoute } from '@tanstack/react-router'
+import { SessionProvider } from '../context/SessionContext.tsx'
 
 export const Route = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-    </>
-  ),
+  component: RootLayout,
 })
+
+function RootLayout() {
+  return (
+    <SessionProvider>
+      <Outlet />
+    </SessionProvider>
+  )
+}
