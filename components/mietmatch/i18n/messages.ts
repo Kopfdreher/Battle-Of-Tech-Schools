@@ -60,6 +60,37 @@ const en: Dict = {
   'signup.error.match': 'Those passwords do not match.',
   'signup.error.generic': 'Could not create the account.',
 
+  'onboarding.hello': 'Hi, {name}',
+  'onboarding.progressLabel': 'Onboarding steps',
+  'onboarding.progress.email': 'Email permission',
+  'onboarding.progress.csv': 'CSV option',
+  'onboarding.email.kicker': 'Step 1 of 2 · Inbox access',
+  'onboarding.email.title': 'Connect your email to fetch applications?',
+  'onboarding.email.lede':
+    'We can read application emails from your inbox. Sensitive details are anonymized and encrypted first — so AI helpers never see private data.',
+  'onboarding.email.point1':
+    'Our anonymization tool encrypts sensitive personal data before anything is shared.',
+  'onboarding.email.point2':
+    'Third parties like LLM agents cannot access that private information.',
+  'onboarding.email.point3':
+    'This helps us follow GDPR. We only need your permission as the landlord to continue.',
+  'onboarding.email.gmail': 'Allow Gmail access',
+  'onboarding.email.outlook': 'Allow Outlook access',
+  'onboarding.email.csv': 'No thanks — upload a CSV instead',
+
+  'onboarding.csv.kicker': 'Step 2 of 2 · CSV import',
+  'onboarding.csv.title': 'Upload applicant data as a CSV',
+  'onboarding.csv.lede':
+    'Keep everything in your browser. We will not connect your mailbox or send email content to AI.',
+  'onboarding.csv.upload': 'Choose CSV file',
+  'onboarding.csv.template': 'Download empty template',
+  'onboarding.csv.sample': 'Download sample CSV',
+  'onboarding.csv.back': 'Back',
+  'onboarding.csv.skip': 'Skip for now',
+  'onboarding.csv.error': 'No applicants found in that CSV.',
+  'onboarding.csv.readError': 'Could not read that file.',
+  'onboarding.csv.imported': 'Imported {count} applicants.',
+
   'inbox.flat': 'Your flat',
   'inbox.change': 'Change',
   'inbox.getApplicants': 'Get applicants',
@@ -287,6 +318,37 @@ const de: Dict = {
   'signup.error.password': 'Passwort mit mindestens 8 Zeichen wählen.',
   'signup.error.match': 'Die Passwörter stimmen nicht überein.',
   'signup.error.generic': 'Konto konnte nicht erstellt werden.',
+
+  'onboarding.hello': 'Hallo, {name}',
+  'onboarding.progressLabel': 'Onboarding-Schritte',
+  'onboarding.progress.email': 'E-Mail-Erlaubnis',
+  'onboarding.progress.csv': 'CSV-Option',
+  'onboarding.email.kicker': 'Schritt 1 von 2 · Postfachzugriff',
+  'onboarding.email.title': 'E-Mail verbinden, um Bewerbungen zu holen?',
+  'onboarding.email.lede':
+    'Wir können Bewerbungsmails aus Ihrem Postfach lesen. Sensible Daten werden zuerst anonymisiert und verschlüsselt — damit KI-Helfer keine privaten Infos sehen.',
+  'onboarding.email.point1':
+    'Unser Anonymisierungs-Tool verschlüsselt sensible personenbezogene Daten, bevor etwas weitergegeben wird.',
+  'onboarding.email.point2':
+    'Dritte wie LLM-Agenten bekommen keinen Zugriff auf diese privaten Informationen.',
+  'onboarding.email.point3':
+    'So halten wir die DSGVO ein. Dafür brauchen wir nur Ihre Erlaubnis als Vermieter.',
+  'onboarding.email.gmail': 'Gmail-Zugriff erlauben',
+  'onboarding.email.outlook': 'Outlook-Zugriff erlauben',
+  'onboarding.email.csv': 'Nein danke — stattdessen CSV hochladen',
+
+  'onboarding.csv.kicker': 'Schritt 2 von 2 · CSV-Import',
+  'onboarding.csv.title': 'Bewerberdaten als CSV hochladen',
+  'onboarding.csv.lede':
+    'Alles bleibt in Ihrem Browser. Wir verbinden kein Postfach und senden keine E-Mail-Inhalte an die KI.',
+  'onboarding.csv.upload': 'CSV-Datei wählen',
+  'onboarding.csv.template': 'Leere Vorlage herunterladen',
+  'onboarding.csv.sample': 'Beispiel-CSV herunterladen',
+  'onboarding.csv.back': 'Zurück',
+  'onboarding.csv.skip': 'Vorerst überspringen',
+  'onboarding.csv.error': 'In dieser CSV wurden keine Bewerber gefunden.',
+  'onboarding.csv.readError': 'Datei konnte nicht gelesen werden.',
+  'onboarding.csv.imported': '{count} Bewerber importiert.',
 
   'inbox.flat': 'Ihre Wohnung',
   'inbox.change': 'Ändern',

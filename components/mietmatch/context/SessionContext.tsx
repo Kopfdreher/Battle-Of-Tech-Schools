@@ -13,6 +13,7 @@ import {
   invitedKey,
   mailboxKey,
   marksKey,
+  onboardingKey,
   readJson,
   removeKey,
   requirementsKey,
@@ -32,6 +33,7 @@ import { SessionContext, type ApplicantMark, type SessionValue } from './session
 
 type SessionState = {
   user: User | null
+  onboardingDone: boolean
   requirements: Requirements
   flat: LandlordFlat | null
   applicants: Applicant[]
@@ -90,6 +92,7 @@ function loadMarks(userId: string): Record<string, ApplicantMark> {
 function emptyState(): SessionState {
   return {
     user: null,
+    onboardingDone: true,
     requirements: defaultRequirements,
     flat: null,
     applicants: [],
@@ -100,16 +103,32 @@ function emptyState(): SessionState {
   }
 }
 
+function resolveOnboardingDone(
+  userId: string,
+  flat: LandlordFlat | null,
+  applicants: Applicant[],
+  mailbox: MailboxConnection | null,
+) {
+  const stored = readJson<boolean | null>(onboardingKey(userId), null)
+  if (stored === true) return true
+  if (stored === false) return false
+  return Boolean(flat || applicants.length > 0 || mailbox)
+}
+
 function loadState(): SessionState {
   const userId = readJson<string | null>(sessionKey, null)
   const user = userId ? findUser(userId) : null
   if (!user) return emptyState()
+  const flat = loadFlat(user.id)
+  const applicants = loadApplicants(user.id)
+  const mailbox = loadMailbox(user.id)
   return {
     user,
+    onboardingDone: resolveOnboardingDone(user.id, flat, applicants, mailbox),
     requirements: sanitizeRequirements(readJson<unknown>(requirementsKey(user.id), null)),
-    flat: loadFlat(user.id),
-    applicants: loadApplicants(user.id),
-    mailbox: loadMailbox(user.id),
+    flat,
+    applicants,
+    mailbox,
     invitedIds: loadInvited(user.id),
     invitations: loadInvitations(user.id),
     marks: loadMarks(user.id),
@@ -178,20 +197,30 @@ export function SessionProvider({
   const signup = useCallback(async (name: string, email: string, password: string) => {
     const user = await register(name, email, password)
     writeJson(sessionKey, user.id)
-    setState(withBoard({ ...emptyState(), user, requirements: defaultRequirements }, serverBoard))
+    writeJson(onboardingKey(user.id), false)
+    setState(
+      withBoard(
+        { ...emptyState(), user, onboardingDone: false, requirements: defaultRequirements },
+        serverBoard,
+      ),
+    )
   }, [serverBoard])
 
   const login = useCallback(async (email: string, password: string) => {
     const user = await authenticate(email, password)
     writeJson(sessionKey, user.id)
+    const flat = loadFlat(user.id)
+    const applicants = loadApplicants(user.id)
+    const mailbox = loadMailbox(user.id)
     setState(
       withBoard(
         {
           user,
+          onboardingDone: resolveOnboardingDone(user.id, flat, applicants, mailbox),
           requirements: sanitizeRequirements(readJson<unknown>(requirementsKey(user.id), null)),
-          flat: loadFlat(user.id),
-          applicants: loadApplicants(user.id),
-          mailbox: loadMailbox(user.id),
+          flat,
+          applicants,
+          mailbox,
           invitedIds: loadInvited(user.id),
           invitations: loadInvitations(user.id),
           marks: loadMarks(user.id),
@@ -204,6 +233,14 @@ export function SessionProvider({
   const logout = useCallback(() => {
     removeKey(sessionKey)
     setState(emptyState())
+  }, [])
+
+  const completeOnboarding = useCallback(() => {
+    setState((current) => {
+      if (!current.user) return current
+      writeJson(onboardingKey(current.user.id), true)
+      return { ...current, onboardingDone: true }
+    })
   }, [])
 
   const updateRequirements = useCallback((requirements: Requirements) => {
@@ -449,6 +486,7 @@ export function SessionProvider({
       signup,
       login,
       logout,
+      completeOnboarding,
       updateRequirements,
       setFlat,
       clearFlat,
@@ -473,6 +511,7 @@ export function SessionProvider({
       signup,
       login,
       logout,
+      completeOnboarding,
       updateRequirements,
       setFlat,
       clearFlat,
