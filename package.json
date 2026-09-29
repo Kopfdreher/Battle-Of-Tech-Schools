@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:web": "pnpm --filter web dev",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
