@@ -186,10 +186,10 @@ export function parseEmailList(text: string): { drafts: ApplicantDraft[]; errors
   return { drafts, errors }
 }
 
-export const CSV_TEMPLATE = `name,email,net_income,household_size,contract,employment,arrears_letter,income_proof,employment_proof,schufa,smokes
-Mara Ellison,mara.ellison@example.com,4200,2,permanent,employed,yes,yes,yes,yes,no
-Jonas Richter,jonas.richter@example.com,3100,1,permanent,employed,yes,yes,yes,no,no
-Leila Hofmann,leila.hofmann@example.com,2800,2,fixed,employed,yes,yes,yes,yes,no
+export const CSV_TEMPLATE = `applicant_id,name,email,apartment_id,income,employment,household_size,requested_rooms_amount,is_smoker,message
+app-1,Mara Ellison,mara.ellison@example.com,apt-101,4200,employed,2,2,no,
+app-2,Jonas Richter,jonas.richter@example.com,apt-102,3100,employed,1,1,no,
+app-3,Leila Hofmann,leila.hofmann@example.com,apt-103,2800,employed,2,1,no,
 `
 
 /** Build ~100 demo applicants as CSV text for download / import demos. */
@@ -204,22 +204,23 @@ export function buildDemoCsv(count = 100): string {
     const email = `${f}.${l}.${i}@example.com`.toLowerCase()
     const income = 1600 + ((i * 137) % 4200)
     const household = 1 + (i % 4)
-    const contract = CONTRACTS[i % CONTRACTS.length]
+    const requested = 1 + (i % 3)
     const employment = EMPLOYMENTS[i % EMPLOYMENTS.length]
-    const yesNo = (n: number) => (i % n === 0 ? 'no' : 'yes')
+    const isSmoker = i % 7 === 0 ? 'yes' : 'no'
+    const applicantId = `app-${i + 1}`
+    const apartmentId = `apt-${100 + (i % 50)}`
     rows.push(
       [
+        applicantId,
         name,
         email,
+        apartmentId,
         String(income),
-        String(household),
-        contract,
         employment,
-        yesNo(5),
-        yesNo(4),
-        yesNo(6),
-        yesNo(3),
-        i % 7 === 0 ? 'yes' : 'no',
+        String(household),
+        String(requested),
+        isSmoker,
+        '',
       ].join(','),
     )
   }

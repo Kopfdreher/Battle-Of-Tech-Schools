@@ -50,19 +50,62 @@ export function ImportApplicants() {
     return () => window.clearTimeout(timer)
   }, [scanning, scanStep, importApplicants, mode, mailbox?.provider])
 
-  function applyCsv(text: string) {
+  async function applyCsv(text: string) {
     setError(null)
     setMessage(null)
+
+    const required = [
+      'applicant_id',
+      'name',
+      'email',
+      'apartment_id',
+      'income',
+      'employment',
+      'household_size',
+      'requested_rooms_amount',
+      'is_smoker',
+      'message',
+    ]
+    const firstLine = String(text).split(/\r?\n/)[0] ?? ''
+    const headers = firstLine.split(',').map((h) => h.trim())
+    const missing = required.filter((r) => !headers.includes(r))
+    if (missing.length > 0) {
+      setError(
+        `CSV missing required header(s): ${missing.join(', ')}. Expected header row: ${required.join(',')}`,
+      )
+      return
+    }
+
+    try {
+      const resp = await fetch('/api/forward-csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/csv' },
+        body: text,
+      })
+      if (!resp.ok) {
+        const body = await resp.text()
+        setError(`Upload failed: ${resp.status} ${resp.statusText} — ${body}`)
+      } else {
+        setMessage('Uploaded CSV to webhook successfully.')
+      }
+    } catch (err: any) {
+      setError(`Upload failed: ${err?.message ?? String(err)}`)
+    }
+
     const parsed = parseApplicantCsv(text)
     if (parsed.drafts.length === 0) {
       setError(parsed.errors[0] ?? 'No applicants found in that CSV.')
       return
     }
     const count = importApplicants(parsed.drafts, mode)
-    setMessage(
-      `Imported ${count} applicant${count === 1 ? '' : 's'} from CSV${
-        parsed.errors.length ? ` (${parsed.errors.length} skipped)` : ''
-      }.`,
+    setMessage((prev) =>
+      prev
+        ? `${prev} Imported ${count} applicant${count === 1 ? '' : 's'} from CSV${
+            parsed.errors.length ? ` (${parsed.errors.length} skipped)` : ''
+          }.`
+        : `Imported ${count} applicant${count === 1 ? '' : 's'} from CSV${
+            parsed.errors.length ? ` (${parsed.errors.length} skipped)` : ''
+          }.`,
     )
   }
 
