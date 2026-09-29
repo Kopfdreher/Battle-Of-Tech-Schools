@@ -1,0 +1,77 @@
+'use client'
+
+import { useEffect, useId, useRef, useState } from 'react'
+import { useNavigate } from '@/components/mietmatch/nav'
+import { useLocale } from '../context/LocaleContext'
+import { useSession } from '../context/session'
+import { initials } from '../lib/format'
+
+export function ProfileMenu({ floating = false }: { floating?: boolean }) {
+  const { user, logout } = useSession()
+  const { t } = useLocale()
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
+  const root = useRef<HTMLDivElement>(null)
+  const menuId = useId()
+
+  useEffect(() => {
+    if (!open) return
+    function onPointer(event: MouseEvent) {
+      if (!root.current?.contains(event.target as Node)) setOpen(false)
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  if (!user) return null
+
+  return (
+    <div className={floating ? 'profile floating' : 'profile'} ref={root}>
+      {open ? (
+        <div className="profile-menu" id={menuId} role="menu">
+          <div className="profile-meta">
+            <strong>{user.name}</strong>
+            <small>{user.email}</small>
+          </div>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              logout()
+              setOpen(false)
+              void navigate({ to: '/login' })
+            }}
+          >
+            {t('profile.logout')}
+          </button>
+        </div>
+      ) : null}
+      <button
+        type="button"
+        className={open ? 'profile-trigger open' : 'profile-trigger'}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={menuId}
+        aria-label={t('profile.menu')}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className="avatar" aria-hidden="true">
+          {initials(user.name)}
+        </span>
+        {floating ? null : (
+          <span className="profile-copy">
+            <strong>{user.name}</strong>
+            <small>{user.email}</small>
+          </span>
+        )}
+      </button>
+    </div>
+  )
+}
