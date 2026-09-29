@@ -6,23 +6,42 @@ import { Brand } from '../components/Brand'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
+import { CRITERIA_SUGGESTIONS, DEFAULT_SELECTED } from '../data/requirements'
 import { buildDemoCsv, CSV_TEMPLATE, parseApplicantCsv } from '../lib/csv'
-import type { MailboxProvider } from '../types'
+import type { CriterionId, MailboxProvider } from '../types'
 
-type Step = 'email' | 'csv'
+type Step = 'fit' | 'email' | 'csv'
+
+const ONBOARD_CRITERIA = CRITERIA_SUGGESTIONS.filter((item) =>
+  [
+    'affordability',
+    'contract',
+    'household',
+    'arrearsLetter',
+    'documents',
+    'schufa',
+    'smoking',
+    'employed',
+  ].includes(item.id),
+)
 
 export function OnboardingPage() {
   const {
     user,
     ready,
     onboardingDone,
+    requirements,
+    updateRequirements,
     connectMailbox,
     importApplicants,
     completeOnboarding,
   } = useSession()
   const { t } = useLocale()
   const navigate = useNavigate()
-  const [step, setStep] = useState<Step>('email')
+  const [step, setStep] = useState<Step>('fit')
+  const [selected, setSelected] = useState<CriterionId[]>(() =>
+    requirements.selected.length > 0 ? [...requirements.selected] : [...DEFAULT_SELECTED],
+  )
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const fileId = useId()
@@ -32,11 +51,40 @@ export function OnboardingPage() {
   if (!user) return <Navigate to="/login" />
   if (onboardingDone) return <Navigate to="/" />
 
-  const stepIndex = step === 'email' ? 1 : 2
+  const stepIndex = step === 'fit' ? 1 : step === 'email' ? 2 : 3
 
   function finish() {
     completeOnboarding()
     void navigate({ to: '/' })
+  }
+
+  function saveFitAndContinue() {
+    if (selected.length === 0) {
+      setError(t('onboarding.fit.error'))
+      return
+    }
+    setError(null)
+    updateRequirements({ ...requirements, selected: [...selected] })
+    setStep('email')
+  }
+
+  function toggleCriterion(id: CriterionId) {
+    setError(null)
+    setSelected((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
+    )
+  }
+
+  function moveCriterion(id: CriterionId, direction: -1 | 1) {
+    setSelected((current) => {
+      const index = current.indexOf(id)
+      const nextIndex = index + direction
+      if (index < 0 || nextIndex < 0 || nextIndex >= current.length) return current
+      const next = [...current]
+      const [item] = next.splice(index, 1)
+      next.splice(nextIndex, 0, item)
+      return next
+    })
   }
 
   function allowMailbox(provider: MailboxProvider) {
@@ -93,23 +141,97 @@ export function OnboardingPage() {
         </div>
       </header>
 
-      <div className="wizard-progress" aria-label={t('onboarding.progressLabel')}>
+      <div className="wizard-progress wizard-progress-3" aria-label={t('onboarding.progressLabel')}>
         <div className={stepIndex >= 1 ? 'wizard-step on' : 'wizard-step'}>
           <span>1</span>
-          <small>{t('onboarding.progress.email')}</small>
+          <small>{t('onboarding.progress.fit')}</small>
         </div>
         <div className="wizard-rail" aria-hidden="true">
-          <i style={{ width: stepIndex === 1 ? '0%' : '100%' }} />
+          <i style={{ width: stepIndex >= 2 ? '100%' : '0%' }} />
         </div>
         <div className={stepIndex >= 2 ? 'wizard-step on' : 'wizard-step'}>
           <span>2</span>
+          <small>{t('onboarding.progress.email')}</small>
+        </div>
+        <div className="wizard-rail" aria-hidden="true">
+          <i style={{ width: stepIndex >= 3 ? '100%' : '0%' }} />
+        </div>
+        <div className={stepIndex >= 3 ? 'wizard-step on' : 'wizard-step'}>
+          <span>3</span>
           <small>{t('onboarding.progress.csv')}</small>
         </div>
       </div>
 
       <main className="wizard-stage" key={step}>
         <img className="wizard-mascot" src="/mascot.png" alt="" />
-        {step === 'email' ? (
+        {step === 'fit' ? (
+          <section className="wizard-panel">
+            <p className="kicker">{t('onboarding.fit.kicker')}</p>
+            <h1>{t('onboarding.fit.title')}</h1>
+            <p className="lede">{t('onboarding.fit.lede')}</p>
+            <div className="wizard-chip-grid" role="group" aria-label={t('onboarding.fit.pickLabel')}>
+              {ONBOARD_CRITERIA.map((item) => {
+                const on = selected.includes(item.id)
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={on ? 'wizard-chip on' : 'wizard-chip'}
+                    aria-pressed={on}
+                    onClick={() => toggleCriterion(item.id)}
+                  >
+                    {t(`criterion.${item.id}`)}
+                  </button>
+                )
+              })}
+            </div>
+            {selected.length > 0 ? (
+              <div className="wizard-rank">
+                <p className="wizard-rank-label">{t('onboarding.fit.rankLabel')}</p>
+                <ol className="wizard-rank-list">
+                  {selected.map((id, index) => (
+                    <li key={id}>
+                      <span className="wizard-rank-num">{index + 1}</span>
+                      <div className="wizard-rank-copy">
+                        <strong>{t(`criterion.${id}`)}</strong>
+                        <small>
+                          {index === 0
+                            ? t('onboarding.fit.mostImportant')
+                            : t('onboarding.fit.importance', { rank: index + 1 })}
+                        </small>
+                      </div>
+                      <div className="wizard-rank-move">
+                        <button
+                          type="button"
+                          className="btn ghost"
+                          disabled={index === 0}
+                          aria-label={t('onboarding.fit.moveUp')}
+                          onClick={() => moveCriterion(id, -1)}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          className="btn ghost"
+                          disabled={index === selected.length - 1}
+                          aria-label={t('onboarding.fit.moveDown')}
+                          onClick={() => moveCriterion(id, 1)}
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
+            {error ? (
+              <p className="error" role="alert">
+                {error}
+              </p>
+            ) : null}
+          </section>
+        ) : step === 'email' ? (
           <section className="wizard-panel">
             <p className="kicker">{t('onboarding.email.kicker')}</p>
             <h1>{t('onboarding.email.title')}</h1>
@@ -126,6 +248,10 @@ export function OnboardingPage() {
               <li>
                 <span>3</span>
                 <p>{t('onboarding.email.point3')}</p>
+              </li>
+              <li>
+                <span>4</span>
+                <p>{t('onboarding.email.point4')}</p>
               </li>
             </ul>
           </section>
@@ -167,8 +293,15 @@ export function OnboardingPage() {
       </main>
 
       <footer className="wizard-foot">
-        {step === 'email' ? (
+        {step === 'fit' ? (
+          <button type="button" className="btn primary" onClick={saveFitAndContinue}>
+            {t('onboarding.fit.continue')}
+          </button>
+        ) : step === 'email' ? (
           <>
+            <button type="button" className="btn ghost" onClick={() => setStep('fit')}>
+              {t('onboarding.back')}
+            </button>
             <button type="button" className="btn primary" onClick={() => allowMailbox('gmail')}>
               {t('onboarding.email.gmail')}
             </button>
@@ -190,7 +323,7 @@ export function OnboardingPage() {
         ) : (
           <>
             <button type="button" className="btn ghost" onClick={() => setStep('email')}>
-              {t('onboarding.csv.back')}
+              {t('onboarding.back')}
             </button>
             <button type="button" className="btn primary" onClick={() => fileRef.current?.click()}>
               {t('onboarding.csv.upload')}

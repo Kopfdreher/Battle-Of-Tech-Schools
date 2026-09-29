@@ -44,6 +44,16 @@ export function ProfileMenu({ floating = false }: { floating?: boolean }) {
             type="button"
             role="menuitem"
             onClick={() => {
+              setOpen(false)
+              void navigate({ to: '/settings' })
+            }}
+          >
+            {t('profile.settings')}
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
               logout()
               setOpen(false)
               void navigate({ to: '/login' })

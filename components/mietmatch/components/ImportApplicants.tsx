@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { Link } from '@/components/mietmatch/nav'
 import { SAMPLE_APPLICANTS } from '../data/applicants'
+import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
 import {
   buildDemoCsv,
@@ -10,20 +12,18 @@ import {
 } from '../lib/csv'
 import type { MailboxProvider } from '../types'
 
-type Source = 'chooser' | 'email' | 'csv'
-
-const SCAN_STEPS = [
-  'Connecting to your inbox…',
-  'Finding application emails…',
-  'Extracting structured fields (income, contract, documents)…',
-  'Building your shortlist…',
-]
+const SCAN_STEPS_KEYS = [
+  'import.scan.1',
+  'import.scan.2',
+  'import.scan.3',
+  'import.scan.4',
+] as const
 
 export function ImportApplicants() {
   const { user, mailbox, connectMailbox, disconnectMailbox, importApplicants } = useSession()
+  const { t } = useLocale()
   const fileId = useId()
   const fileRef = useRef<HTMLInputElement>(null)
-  const [source, setSource] = useState<Source>(mailbox ? 'email' : 'chooser')
   const [mode, setMode] = useState<'replace' | 'append'>('replace')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -33,7 +33,7 @@ export function ImportApplicants() {
 
   useEffect(() => {
     if (!scanning) return
-    if (scanStep >= SCAN_STEPS.length - 1) {
+    if (scanStep >= SCAN_STEPS_KEYS.length - 1) {
       const timer = window.setTimeout(() => {
         const drafts = SAMPLE_APPLICANTS.map((item) => ({
           ...item,
@@ -43,28 +43,32 @@ export function ImportApplicants() {
         setScanning(false)
         setScanStep(0)
         setMessage(
-          `Read ${count} application emails from ${mailbox?.provider === 'outlook' ? 'Outlook' : 'Gmail'}. Match % is ready.`,
+          t('import.scan.done', {
+            count,
+            provider: mailbox?.provider === 'outlook' ? 'Outlook' : 'Gmail',
+          }),
         )
       }, 700)
       return () => window.clearTimeout(timer)
     }
     const timer = window.setTimeout(() => setScanStep((step) => step + 1), 650)
     return () => window.clearTimeout(timer)
-  }, [scanning, scanStep, importApplicants, mode, mailbox?.provider])
+  }, [scanning, scanStep, importApplicants, mode, mailbox?.provider, t])
 
   function applyCsv(text: string) {
     setError(null)
     setMessage(null)
     const parsed = parseApplicantCsv(text)
     if (parsed.drafts.length === 0) {
-      setError(parsed.errors[0] ?? 'No applicants found in that CSV.')
+      setError(parsed.errors[0] ?? t('import.csv.error'))
       return
     }
     const count = importApplicants(parsed.drafts, mode)
     setMessage(
-      `Imported ${count} applicant${count === 1 ? '' : 's'} from CSV${
-        parsed.errors.length ? ` (${parsed.errors.length} skipped)` : ''
-      }.`,
+      t('import.csv.imported', {
+        count,
+        skipped: parsed.errors.length,
+      }),
     )
   }
 
@@ -72,7 +76,7 @@ export function ImportApplicants() {
     if (!file) return
     const reader = new FileReader()
     reader.onload = () => applyCsv(String(reader.result ?? ''))
-    reader.onerror = () => setError('Could not read that file.')
+    reader.onerror = () => setError(t('import.csv.readError'))
     reader.readAsText(file)
   }
 
@@ -80,7 +84,6 @@ export function ImportApplicants() {
     if (!consentFor) return
     connectMailbox(consentFor)
     setConsentFor(null)
-    setSource('email')
   }
 
   function startInboxScan() {
@@ -101,32 +104,10 @@ export function ImportApplicants() {
   }
 
   return (
-    <section className="panel import-panel" aria-label="Get applicants">
-      <p className="kicker">Get applicants</p>
-      <h2>Bring applications into the shortlist</h2>
-      <p className="lede">
-        Connect an inbox and pull applicant emails, or upload a CSV of people who applied. Either way, we score each
-        person with a match %.
-      </p>
-
-      {source === 'chooser' ? (
-        <div className="intake-grid">
-          <button type="button" className="intake-card" onClick={() => setSource('email')}>
-            <strong>Connect email</strong>
-            <span>Gmail or Outlook — read application messages and extract applicant data.</span>
-          </button>
-          <button type="button" className="intake-card" onClick={() => setSource('csv')}>
-            <strong>Upload CSV</strong>
-            <span>Import a spreadsheet with names, income, contract, documents, and more.</span>
-          </button>
-        </div>
-      ) : null}
-
-      {source !== 'chooser' ? (
-        <div className="import-modes">
-          <button type="button" className="text-button" onClick={() => setSource('chooser')}>
-            ← Back to options
-          </button>
+    <div className="import-stack">
+      <div className="import-modes panel">
+        <p className="kicker">{t('import.mode.kicker')}</p>
+        <div className="place-actions">
           <label className="check-row">
             <input
               type="radio"
@@ -134,7 +115,7 @@ export function ImportApplicants() {
               checked={mode === 'replace'}
               onChange={() => setMode('replace')}
             />
-            <span>Replace shortlist</span>
+            <span>{t('import.mode.replace')}</span>
           </label>
           <label className="check-row">
             <input
@@ -143,110 +124,97 @@ export function ImportApplicants() {
               checked={mode === 'append'}
               onChange={() => setMode('append')}
             />
-            <span>Append</span>
+            <span>{t('import.mode.append')}</span>
           </label>
         </div>
-      ) : null}
+      </div>
 
-      {source === 'email' ? (
-        <div className="intake-detail">
-          <h3>Connect your inbox</h3>
-          <p className="hint">
-            We look for messages that look like flat applications, then pull structured fields only. Free-text body
-            text is not used for the match score.
-          </p>
-          {mailbox ? (
-            <div className="mailbox-status">
-              <p>
-                <strong>{mailbox.provider === 'gmail' ? 'Gmail' : 'Outlook'}</strong> connected as {mailbox.email}
-              </p>
-              <div className="import-actions">
-                <button type="button" className="btn primary" onClick={startInboxScan} disabled={scanning}>
-                  {scanning ? 'Reading inbox…' : 'Read applicant emails'}
-                </button>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => {
-                    disconnectMailbox()
-                    setMessage(null)
-                  }}
-                >
-                  Disconnect
-                </button>
-              </div>
-            </div>
-          ) : (
+      <section className="panel import-panel" id="email-import" aria-label={t('import.email.title')}>
+        <p className="kicker">{t('import.email.kicker')}</p>
+        <h2>{t('import.email.title')}</h2>
+        <p className="lede">{t('import.email.lede')}</p>
+        {mailbox ? (
+          <div className="mailbox-status">
+            <p>
+              <strong>{mailbox.provider === 'gmail' ? 'Gmail' : 'Outlook'}</strong> · {mailbox.email}
+            </p>
             <div className="import-actions">
-              <button type="button" className="btn primary" onClick={() => setConsentFor('gmail')}>
-                Connect Gmail
+              <button type="button" className="btn primary" onClick={startInboxScan} disabled={scanning}>
+                {scanning ? t('import.email.reading') : t('import.email.read')}
               </button>
-              <button type="button" className="btn" onClick={() => setConsentFor('outlook')}>
-                Connect Outlook
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => {
+                  disconnectMailbox()
+                  setMessage(t('settings.mailbox.revoked'))
+                }}
+              >
+                {t('import.email.disconnect')}
               </button>
             </div>
-          )}
-          {scanning ? (
-            <div className="scan-progress" aria-live="polite">
-              <p>{SCAN_STEPS[scanStep]}</p>
-              <div className="bar">
-                <span style={{ width: `${((scanStep + 1) / SCAN_STEPS.length) * 100}%` }} />
-              </div>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
-      {source === 'csv' ? (
-        <div className="intake-detail">
-          <h3>Upload a CSV of applicants</h3>
-          <p className="hint">
-            Use your own export of people who applied, or download our template / 100-row demo file.
-          </p>
-          <input
-            ref={fileRef}
-            id={fileId}
-            className="sr-only"
-            type="file"
-            accept=".csv,text/csv"
-            onChange={(event) => {
-              onFile(event.target.files?.[0] ?? null)
-              event.target.value = ''
-            }}
-          />
-          <div className="import-actions">
-            <button type="button" className="btn primary" onClick={() => fileRef.current?.click()}>
-              Upload CSV file
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => download('mietmatch-applicants-template.csv', CSV_TEMPLATE)}
-            >
-              Download template
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => applyCsv(buildDemoCsv(100))}
-            >
-              Load 100 demo applicants
-            </button>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => download('mietmatch-100-applicants.csv', buildDemoCsv(100))}
-            >
-              Download 100-row demo
-            </button>
           </div>
-          <CsvPaste onImport={applyCsv} />
-          <p className="footnote">
-            Columns: name, email, net_income, household_size, contract, employment, arrears_letter, income_proof,
-            employment_proof, schufa, smokes.
-          </p>
+        ) : (
+          <div className="import-actions">
+            <button type="button" className="btn primary" onClick={() => setConsentFor('gmail')}>
+              {t('import.email.gmail')}
+            </button>
+            <button type="button" className="btn" onClick={() => setConsentFor('outlook')}>
+              {t('import.email.outlook')}
+            </button>
+            <LinkSettings />
+          </div>
+        )}
+        {scanning ? (
+          <div className="scan-progress" aria-live="polite">
+            <p>{t(SCAN_STEPS_KEYS[scanStep])}</p>
+            <div className="bar">
+              <span style={{ width: `${((scanStep + 1) / SCAN_STEPS_KEYS.length) * 100}%` }} />
+            </div>
+          </div>
+        ) : null}
+      </section>
+
+      <section className="panel import-panel" id="csv-import" aria-label={t('import.csv.title')}>
+        <p className="kicker">{t('import.csv.kicker')}</p>
+        <h2>{t('import.csv.title')}</h2>
+        <p className="lede">{t('import.csv.lede')}</p>
+        <input
+          ref={fileRef}
+          id={fileId}
+          className="sr-only"
+          type="file"
+          accept=".csv,text/csv"
+          onChange={(event) => {
+            onFile(event.target.files?.[0] ?? null)
+            event.target.value = ''
+          }}
+        />
+        <div className="import-actions">
+          <button type="button" className="btn primary" onClick={() => fileRef.current?.click()}>
+            {t('import.csv.upload')}
+          </button>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => download('mietmatch-applicants-template.csv', CSV_TEMPLATE)}
+          >
+            {t('import.csv.template')}
+          </button>
+          <button type="button" className="btn" onClick={() => applyCsv(buildDemoCsv(100))}>
+            {t('import.csv.demo')}
+          </button>
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={() => download('mietmatch-100-applicants.csv', buildDemoCsv(100))}
+          >
+            {t('import.csv.downloadDemo')}
+          </button>
         </div>
-      ) : null}
+        <CsvPaste onImport={applyCsv} label={t('import.csv.paste')} submitLabel={t('import.csv.pasteSubmit')} />
+        <p className="footnote">{t('import.csv.columns')}</p>
+      </section>
 
       {error ? (
         <p className="error" role="alert">
@@ -259,32 +227,46 @@ export function ImportApplicants() {
         <div className="backdrop" role="dialog" aria-modal="true" aria-labelledby="consent-title">
           <div className="dialog panel">
             <p className="kicker">{consentFor === 'gmail' ? 'Gmail' : 'Outlook'}</p>
-            <h2 id="consent-title">Allow Mietmatch to read application mail?</h2>
+            <h2 id="consent-title">{t('import.consent.title')}</h2>
             <ul className="scopes">
-              <li>See messages that look like flat applications</li>
-              <li>Extract structured fields (income, household, documents)</li>
-              <li>Keep access read-only — we do not send mail</li>
+              <li>{t('import.consent.1')}</li>
+              <li>{t('import.consent.2')}</li>
+              <li>{t('import.consent.3')}</li>
             </ul>
-            <p className="hint">
-              Preview uses sample Berlin applications for {user?.email}. Your password stays with{' '}
-              {consentFor === 'gmail' ? 'Google' : 'Microsoft'}.
-            </p>
+            <p className="hint">{t('import.consent.hint', { email: user?.email ?? '' })}</p>
             <div className="place-actions">
               <button type="button" className="btn primary" onClick={onConsentAllow}>
-                Allow read-only access
+                {t('import.consent.allow')}
               </button>
               <button type="button" className="btn ghost" onClick={() => setConsentFor(null)}>
-                Cancel
+                {t('import.consent.cancel')}
               </button>
             </div>
           </div>
         </div>
       ) : null}
-    </section>
+    </div>
   )
 }
 
-function CsvPaste({ onImport }: { onImport: (text: string) => void }) {
+function LinkSettings() {
+  const { t } = useLocale()
+  return (
+    <Link className="text-button" to="/settings">
+      {t('import.email.settings')}
+    </Link>
+  )
+}
+
+function CsvPaste({
+  onImport,
+  label,
+  submitLabel,
+}: {
+  onImport: (text: string) => void
+  label: string
+  submitLabel: string
+}) {
   const [paste, setPaste] = useState('')
 
   function onSubmit(event: FormEvent) {
@@ -297,7 +279,7 @@ function CsvPaste({ onImport }: { onImport: (text: string) => void }) {
   return (
     <form className="address-box" onSubmit={onSubmit}>
       <div className="field">
-        <label htmlFor="csv-paste">Or paste CSV text</label>
+        <label htmlFor="csv-paste">{label}</label>
         <textarea
           id="csv-paste"
           rows={4}
@@ -307,7 +289,7 @@ function CsvPaste({ onImport }: { onImport: (text: string) => void }) {
         />
       </div>
       <button className="btn" type="submit">
-        Import pasted CSV
+        {submitLabel}
       </button>
     </form>
   )
