@@ -1,4 +1,4 @@
-import { DISTRICTS, type District, type Listing, type SavedPlace } from '../types.ts'
+import { DISTRICTS, type District, type LandlordFlat, type Listing } from '../types.ts'
 import {
   findListingByAddress,
   geocodeAddress,
@@ -6,7 +6,7 @@ import {
   nearestListing,
 } from './lookup.ts'
 
-export type ResolveOk = { ok: true; draft: Omit<SavedPlace, 'id' | 'addedAt'> }
+export type ResolveOk = { ok: true; draft: Omit<LandlordFlat, 'id' | 'addedAt'> }
 export type ResolveFail = { ok: false; reason: 'missing' | 'outside'; label?: string }
 export type ResolveResult = ResolveOk | ResolveFail
 
@@ -15,20 +15,20 @@ export function asDistrict(value: string): District {
   return DISTRICTS.find((district) => needle.includes(district.toLowerCase())) ?? 'Mitte'
 }
 
-export function toListing(place: SavedPlace): Listing {
+export function toListing(flat: LandlordFlat): Listing {
   return {
-    id: place.id,
-    subject: place.address,
+    id: flat.id,
+    subject: flat.address,
     fromName: '',
     fromEmail: '',
     receivedDaysAgo: 0,
-    body: place.sourceNote,
-    address: place.address,
-    district: asDistrict(place.district),
-    bezirk: place.bezirk,
-    rentWarm: 0,
-    rooms: 0,
-    sqm: 0,
+    body: flat.sourceNote,
+    address: flat.address,
+    district: asDistrict(flat.district),
+    bezirk: flat.bezirk,
+    rentWarm: flat.rentWarm,
+    rooms: flat.rooms,
+    sqm: flat.sqm,
     floor: '',
     availableFrom: '',
     visitInDays: 0,
@@ -36,9 +36,9 @@ export function toListing(place: SavedPlace): Listing {
     balcony: false,
     pets: false,
     wbs: false,
-    lat: place.lat,
-    lng: place.lng,
-    berlin: place.berlin,
+    lat: flat.lat,
+    lng: flat.lng,
+    berlin: flat.berlin,
   }
 }
 
@@ -71,6 +71,9 @@ export async function resolveAddress(query: string): Promise<ResolveResult> {
         bezirk: matched.bezirk,
         lat: matched.lat,
         lng: matched.lng,
+        rentWarm: matched.rentWarm,
+        rooms: matched.rooms,
+        sqm: matched.sqm,
         berlin: matched.berlin,
         sourceNote: 'Berlin open-data preview for this street profile.',
       },
@@ -90,6 +93,9 @@ export async function resolveAddress(query: string): Promise<ResolveResult> {
       bezirk: nearest.listing.bezirk,
       lat: hit.lat,
       lng: hit.lng,
+      rentWarm: nearest.listing.rentWarm,
+      rooms: nearest.listing.rooms,
+      sqm: nearest.listing.sqm,
       berlin: nearest.listing.berlin,
       sourceNote: `Preview score from the nearest sample street, ${nearest.listing.address}, about ${nearest.meters} m away.`,
     },

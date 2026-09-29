@@ -1,16 +1,15 @@
 import { RequirementsEditor } from '../components/RequirementsEditor.tsx'
+import { useLocale } from '../context/LocaleContext.tsx'
 
 export function RequirementsPage() {
+  const { t } = useLocale()
   return (
     <div className="requirements">
       <header className="page-head">
         <div>
-          <p className="kicker">Berlin environment</p>
-          <h1>Required criteria</h1>
-          <p className="lede">
-            Choose the surroundings that matter: noise, Kita and schools, commute, Spielplatz, nightlife, accessibility,
-            parking, and supermarket.
-          </p>
+          <p className="kicker">{t('requirements.kicker')}</p>
+          <h1>{t('requirements.title')}</h1>
+          <p className="lede">{t('requirements.lede')}</p>
         </div>
       </header>
       <RequirementsEditor />

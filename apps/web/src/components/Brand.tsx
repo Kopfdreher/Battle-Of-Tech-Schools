@@ -1,4 +1,7 @@
+import { useLocale } from '../context/LocaleContext.tsx'
+
 export function Brand() {
+  const { t } = useLocale()
   return (
     <div className="brand">
       <span className="mark" aria-hidden="true">
@@ -13,8 +16,8 @@ export function Brand() {
         </svg>
       </span>
       <span className="brand-text">
-        <strong>Kiezbrief</strong>
-        <small>Berlin liveability</small>
+        <strong>Mietmatch</strong>
+        <small>{t('brand.tagline')}</small>
       </span>
     </div>
   )

@@ -1,10 +1,12 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
 import { initials } from '../lib/format.ts'
 
 export function ProfileMenu({ floating = false }: { floating?: boolean }) {
   const { user, logout } = useSession()
+  const { t } = useLocale()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
@@ -45,7 +47,7 @@ export function ProfileMenu({ floating = false }: { floating?: boolean }) {
               void navigate({ to: '/login' })
             }}
           >
-            Log out
+            {t('profile.logout')}
           </button>
         </div>
       ) : null}
@@ -55,7 +57,7 @@ export function ProfileMenu({ floating = false }: { floating?: boolean }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-label="Open profile menu"
+        aria-label={t('profile.menu')}
         onClick={() => setOpen((value) => !value)}
       >
         <span className="avatar" aria-hidden="true">

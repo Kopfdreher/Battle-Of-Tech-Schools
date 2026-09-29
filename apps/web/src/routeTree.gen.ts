@@ -15,8 +15,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppAddressRouteImport } from './routes/_app/address'
+import { Route as AppImportRouteImport } from './routes/_app/import'
 import { Route as AppRequirementsRouteImport } from './routes/_app/requirements'
-import { Route as AppListingsIdRouteImport } from './routes/_app/listings.$id'
+import { Route as AppApplicantsIdRouteImport } from './routes/_app/applicants.$id'
 
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
@@ -47,14 +48,19 @@ const AppAddressRoute = AppAddressRouteImport.update({
   path: '/address',
   getParentRoute: () => AppRoute,
 } as any)
+const AppImportRoute = AppImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppRequirementsRoute = AppRequirementsRouteImport.update({
   id: '/requirements',
   path: '/requirements',
   getParentRoute: () => AppRoute,
 } as any)
-const AppListingsIdRoute = AppListingsIdRouteImport.update({
-  id: '/listings/$id',
-  path: '/listings/$id',
+const AppApplicantsIdRoute = AppApplicantsIdRouteImport.update({
+  id: '/applicants/$id',
+  path: '/applicants/$id',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -64,17 +70,19 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/address': typeof AppAddressRoute
+  '/import': typeof AppImportRoute
   '/requirements': typeof AppRequirementsRoute
-  '/listings/$id': typeof AppListingsIdRoute
+  '/applicants/$id': typeof AppApplicantsIdRoute
 }
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/address': typeof AppAddressRoute
+  '/import': typeof AppImportRoute
   '/requirements': typeof AppRequirementsRoute
   '/': typeof AppIndexRoute
-  '/listings/$id': typeof AppListingsIdRoute
+  '/applicants/$id': typeof AppApplicantsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -83,9 +91,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/_app/address': typeof AppAddressRoute
+  '/_app/import': typeof AppImportRoute
   '/_app/requirements': typeof AppRequirementsRoute
   '/_app/': typeof AppIndexRoute
-  '/_app/listings/$id': typeof AppListingsIdRoute
+  '/_app/applicants/$id': typeof AppApplicantsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -95,17 +104,19 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/address'
+    | '/import'
     | '/requirements'
-    | '/listings/$id'
+    | '/applicants/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/$'
     | '/login'
     | '/signup'
     | '/address'
+    | '/import'
     | '/requirements'
     | '/'
-    | '/listings/$id'
+    | '/applicants/$id'
   id:
     | '__root__'
     | '/$'
@@ -113,9 +124,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/_app/address'
+    | '/_app/import'
     | '/_app/requirements'
     | '/_app/'
-    | '/_app/listings/$id'
+    | '/_app/applicants/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -169,6 +181,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAddressRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/import': {
+      id: '/_app/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof AppImportRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/requirements': {
       id: '/_app/requirements'
       path: '/requirements'
@@ -176,11 +195,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRequirementsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/listings/$id': {
-      id: '/_app/listings/$id'
-      path: '/listings/$id'
-      fullPath: '/listings/$id'
-      preLoaderRoute: typeof AppListingsIdRouteImport
+    '/_app/applicants/$id': {
+      id: '/_app/applicants/$id'
+      path: '/applicants/$id'
+      fullPath: '/applicants/$id'
+      preLoaderRoute: typeof AppApplicantsIdRouteImport
       parentRoute: typeof AppRoute
     }
   }
@@ -188,16 +207,18 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAddressRoute: typeof AppAddressRoute
+  AppImportRoute: typeof AppImportRoute
   AppRequirementsRoute: typeof AppRequirementsRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppListingsIdRoute: typeof AppListingsIdRoute
+  AppApplicantsIdRoute: typeof AppApplicantsIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAddressRoute: AppAddressRoute,
+  AppImportRoute: AppImportRoute,
   AppRequirementsRoute: AppRequirementsRoute,
   AppIndexRoute: AppIndexRoute,
-  AppListingsIdRoute: AppListingsIdRoute,
+  AppApplicantsIdRoute: AppApplicantsIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

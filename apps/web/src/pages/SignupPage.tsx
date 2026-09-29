@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { AuthLayout } from '../components/AuthLayout.tsx'
+import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
 
 export function SignupPage() {
   const { signup } = useSession()
+  const { t } = useLocale()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -17,19 +19,19 @@ export function SignupPage() {
     event.preventDefault()
     setError(null)
     if (name.trim().length < 2) {
-      setError('Add the name you want on the account.')
+      setError(t('signup.error.name'))
       return
     }
     if (!email.includes('@')) {
-      setError('Enter a valid email address.')
+      setError(t('signup.error.email'))
       return
     }
     if (password.length < 8) {
-      setError('Use a password of at least 8 characters.')
+      setError(t('signup.error.password'))
       return
     }
     if (password !== confirm) {
-      setError('Those passwords do not match.')
+      setError(t('signup.error.match'))
       return
     }
     setPending(true)
@@ -37,7 +39,7 @@ export function SignupPage() {
       await signup(name, email, password)
       void navigate({ to: '/' })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not create the account.')
+      setError(err instanceof Error ? err.message : t('signup.error.generic'))
     } finally {
       setPending(false)
     }
@@ -45,15 +47,12 @@ export function SignupPage() {
 
   return (
     <AuthLayout>
-      <p className="kicker">Create account</p>
-      <h2>Check the street, not the rent</h2>
-      <p className="lede">
-        After this, paste or type any Berlin address on Kiezboard. We score the street around it — not rent or room
-        count.
-      </p>
+      <p className="kicker">{t('signup.kicker')}</p>
+      <h2>{t('signup.title')}</h2>
+      <p className="lede">{t('signup.lede')}</p>
       <form className="form" onSubmit={onSubmit} noValidate>
         <div className="field">
-          <label htmlFor="name">Name</label>
+          <label htmlFor="name">{t('signup.name')}</label>
           <input
             id="name"
             name="name"
@@ -64,7 +63,7 @@ export function SignupPage() {
           />
         </div>
         <div className="field">
-          <label htmlFor="signup-email">Email</label>
+          <label htmlFor="signup-email">{t('signup.email')}</label>
           <input
             id="signup-email"
             name="email"
@@ -76,7 +75,7 @@ export function SignupPage() {
           />
         </div>
         <div className="field">
-          <label htmlFor="signup-password">Password</label>
+          <label htmlFor="signup-password">{t('signup.password')}</label>
           <input
             id="signup-password"
             name="password"
@@ -86,10 +85,10 @@ export function SignupPage() {
             onChange={(event) => setPassword(event.target.value)}
             required
           />
-          <p className="hint">At least 8 characters. Stored only as a hash in this browser.</p>
+          <p className="hint">{t('signup.passwordHint')}</p>
         </div>
         <div className="field">
-          <label htmlFor="confirm">Confirm password</label>
+          <label htmlFor="confirm">{t('signup.confirm')}</label>
           <input
             id="confirm"
             name="confirm"
@@ -106,11 +105,11 @@ export function SignupPage() {
           </p>
         ) : null}
         <button className="btn primary full" type="submit" disabled={pending}>
-          {pending ? 'Creating…' : 'Create account'}
+          {pending ? t('signup.pending') : t('signup.submit')}
         </button>
       </form>
       <p className="switch">
-        Already have an account? <Link to="/login">Log in</Link>
+        {t('signup.switch')} <Link to="/login">{t('signup.login')}</Link>
       </p>
     </AuthLayout>
   )

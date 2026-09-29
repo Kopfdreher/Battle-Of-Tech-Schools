@@ -9,7 +9,7 @@ export function CriteriaSummary() {
   return (
     <section className="criteria-bar" aria-label="Required criteria">
       <div className="criteria-bar-head">
-        <p className="kicker">Required criteria</p>
+        <p className="kicker">Landlord criteria</p>
         <Link className="text-button" to="/requirements">
           Edit
         </Link>

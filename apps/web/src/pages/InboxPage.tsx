@@ -1,193 +1,279 @@
-import { useCallback, useMemo, useState, type FormEvent } from 'react'
-import { CriteriaSummary } from '../components/CriteriaSummary.tsx'
-import { DashboardMap } from '../components/DashboardMap.tsx'
-import { PlaceRow } from '../components/PlaceRow.tsx'
-import { mapLayersForRequirements } from '../data/requirements.ts'
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from '@tanstack/react-router'
+import { ApplicantRow, type ListGroup } from '../components/ApplicantRow.tsx'
+import { CriteriaBoard } from '../components/CriteriaBoard.tsx'
+import { InvitePanel } from '../components/InvitePanel.tsx'
+import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
-import { greeting } from '../lib/format.ts'
-import type { MapLayerId } from '../lib/mapLayers.ts'
-import { compareListings, evaluate, matchTone } from '../lib/match.ts'
-import { resolveAddress, toListing } from '../lib/places.ts'
+import { compareApplicants, evaluateApplicant, matchTone } from '../lib/match.ts'
+
+type MatchFilter = 'all' | 'strong' | 'weak' | 'duplicates'
 
 export function InboxPage() {
-  const { user, requirements, places, addPlace, removePlace } = useSession()
-  const [draft, setDraft] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [pending, setPending] = useState(false)
+  const { user, requirements, flat, applicants, marks, removeApplicant, loadDemoBoard } = useSession()
+  const { t } = useLocale()
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const requiredLayers = useMemo(() => mapLayersForRequirements(requirements), [requirements])
-  const [hiddenLayers, setHiddenLayers] = useState<MapLayerId[]>([])
-  const [hiddenFor, setHiddenFor] = useState<string | null>(null)
-  const requirementsKey = requirements.selected.slice().sort().join(',')
-  const activeHidden = hiddenFor === requirementsKey ? hiddenLayers : []
-  const layers = requiredLayers.filter((id) => !activeHidden.includes(id))
+  const [listGroup, setListGroup] = useState<ListGroup>('all')
+  const [filter, setFilter] = useState<MatchFilter>('all')
+  const [minPercent, setMinPercent] = useState(0)
+
+  useEffect(() => {
+    if (user && !flat && applicants.length === 0) {
+      loadDemoBoard()
+    }
+  }, [user, flat, applicants.length, loadDemoBoard])
+
+  const ranked = useMemo(() => {
+    if (!flat) return []
+    const list = applicants
+      .map((applicant) => ({
+        applicant,
+        verdict: evaluateApplicant(applicant, flat, requirements, applicants),
+      }))
+      .sort(compareApplicants)
+
+    return list.map((row, index) => ({
+      ...row,
+      number: index + 1,
+    }))
+  }, [applicants, flat, requirements])
+
+  const likedCount = useMemo(
+    () => ranked.filter((row) => marks[row.applicant.id] === 'like').length,
+    [ranked, marks],
+  )
+  const unsureCount = useMemo(
+    () => ranked.filter((row) => marks[row.applicant.id] === 'unsure').length,
+    [ranked, marks],
+  )
+
+  const groupRows = useMemo(() => {
+    if (listGroup === 'like') return ranked.filter((row) => marks[row.applicant.id] === 'like')
+    if (listGroup === 'unsure') return ranked.filter((row) => marks[row.applicant.id] === 'unsure')
+    return ranked
+  }, [ranked, marks, listGroup])
 
   const rows = useMemo(() => {
-    const ranked = places
-      .map((place) => {
-        const listing = toListing(place)
-        const verdict = evaluate(listing, requirements)
-        return { place, listing, verdict }
-      })
-      .sort((left, right) =>
-        compareListings(
-          'fit',
-          { listing: left.listing, score: left.verdict.score, matchRate: left.verdict.matchRate },
-          { listing: right.listing, score: right.verdict.score, matchRate: right.verdict.matchRate },
-        ),
-      )
-    return ranked.map((row, index) => ({ ...row, number: index + 1 }))
-  }, [places, requirements])
-
-  const goodCount = rows.filter((row) => matchTone(row.verdict) === 'good').length
-
-  const pins = useMemo(
-    () =>
-      rows.map((row) => ({
-        number: row.number,
-        listing: row.listing,
-        tone: matchTone(row.verdict),
-      })),
-    [rows],
-  )
-
-  const onToggleLayer = useCallback(
-    (id: MapLayerId) => {
-      if (!requiredLayers.includes(id)) return
-      setHiddenFor(requirementsKey)
-      setHiddenLayers((current) => {
-        const base = hiddenFor === requirementsKey ? current : []
-        return base.includes(id) ? base.filter((item) => item !== id) : [...base, id]
-      })
-    },
-    [hiddenFor, requirementsKey, requiredLayers],
-  )
-
-  const onToggleAll = useCallback(() => {
-    setHiddenFor(requirementsKey)
-    setHiddenLayers((current) => {
-      const base = hiddenFor === requirementsKey ? current : []
-      const allVisible = requiredLayers.every((id) => !base.includes(id))
-      return allVisible ? [...requiredLayers] : []
-    })
-  }, [hiddenFor, requirementsKey, requiredLayers])
-
-  const onSelect = useCallback((id: string) => {
-    setSelectedId((current) => (current === id ? null : id))
-  }, [])
-
-  async function onSubmit(event: FormEvent) {
-    event.preventDefault()
-    const query = draft.trim()
-    if (!query) {
-      setError('Paste or write a Berlin street address with a house number.')
-      return
+    const fingerprints = new Map<string, number>()
+    for (const row of ranked) {
+      fingerprints.set(row.applicant.fingerprint, (fingerprints.get(row.applicant.fingerprint) ?? 0) + 1)
     }
-    setError(null)
-    setPending(true)
-    try {
-      const result = await resolveAddress(query)
-      if (!result.ok) {
-        setError(
-          result.reason === 'outside'
-            ? `${result.label ?? query} is outside Berlin. Only Berlin addresses can be added.`
-            : 'That is not a valid Berlin street address. Use a street name and house number in Berlin.',
-        )
-        return
-      }
-      const place = addPlace(result.draft)
-      setDraft('')
-      setSelectedId(place.id)
-    } catch {
-      setError('Could not look up that address right now. Try again.')
-    } finally {
-      setPending(false)
-    }
-  }
+
+    return groupRows
+      .map((row) => ({
+        ...row,
+        isDuplicate: (fingerprints.get(row.applicant.fingerprint) ?? 0) > 1,
+      }))
+      .filter((row) => {
+        if (listGroup !== 'all') return true
+        if (row.verdict.matchRate < minPercent) return false
+        if (filter === 'strong') return matchTone(row.verdict) === 'good'
+        if (filter === 'weak') return matchTone(row.verdict) === 'bad'
+        if (filter === 'duplicates') return row.isDuplicate
+        return true
+      })
+  }, [ranked, groupRows, filter, minPercent, listGroup])
+
+  const goodCount = useMemo(
+    () => ranked.filter((row) => matchTone(row.verdict) === 'good').length,
+    [ranked],
+  )
 
   return (
     <div className="dashboard">
-      <header className="dash-head">
-        <div>
-          <p className="kicker">{user ? greeting(user.name) : 'Kiezboard'}</p>
-          <h1>Kiezboard</h1>
-          <p className="lede">
-            Paste or type a Berlin address. If it is a real street address in the city, it is added to your list —
-            green from 70% liveability up, red below that.
-          </p>
-        </div>
-      </header>
-
-      <form className="panel address-box" onSubmit={onSubmit}>
-        <div className="field">
-          <label htmlFor="board-address">Add an address</label>
-          <textarea
-            id="board-address"
-            name="address"
-            rows={2}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder="Templiner Straße 7, 10437 Berlin"
-          />
-        </div>
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <button className="btn primary" type="submit" disabled={pending}>
-          {pending ? 'Checking…' : 'Add address'}
-        </button>
-      </form>
-
-      <CriteriaSummary />
-
-      <div className="dash-grid">
-        <section className="invite-side" aria-label="Your addresses">
-          <div className="invite-side-head">
-            <h2>Your addresses</h2>
-            <span>
-              {places.length === 0
-                ? '0'
-                : `${goodCount} green · ${places.length - goodCount} red`}
-            </span>
-          </div>
-          {places.length === 0 ? (
-            <p className="empty">No addresses yet. Paste or type a Berlin street address above.</p>
-          ) : requirements.selected.length === 0 ? (
-            <p className="empty">Select required criteria first. Open Requirements and pick from the suggestions.</p>
-          ) : (
-            <div className="invite-list">
-              {rows.map((row) => (
-                <PlaceRow
-                  key={row.place.id}
-                  number={row.number}
-                  place={row.place}
-                  verdict={row.verdict}
-                  open={selectedId === row.place.id}
-                  onToggle={() => onSelect(row.place.id)}
-                  onRemove={() => {
-                    removePlace(row.place.id)
-                    if (selectedId === row.place.id) setSelectedId(null)
-                  }}
-                />
-              ))}
+      {!flat ? (
+        <>
+          <header className="dash-head dash-head-compact">
+            <div className="place-actions dash-head-actions">
+              <Link className="btn" to="/import">
+                {t('inbox.getApplicants')}
+              </Link>
+              <button type="button" className="btn primary" onClick={loadDemoBoard}>
+                {t('inbox.reloadDemo')}
+              </button>
             </div>
-          )}
-        </section>
+          </header>
+          <section className="panel address-box">
+            <p className="kicker">{t('inbox.tryKicker')}</p>
+            <h2>{t('inbox.tryTitle')}</h2>
+            <p className="lede">{t('inbox.tryLede')}</p>
+            <div className="place-actions">
+              <button type="button" className="btn primary" onClick={loadDemoBoard}>
+                {t('inbox.loadDemo')}
+              </button>
+              <Link className="btn" to="/address">
+                {t('inbox.addFlat')}
+              </Link>
+            </div>
+          </section>
+        </>
+      ) : (
+        <>
+          <header className="board-toolbar" aria-label="Listing and actions">
+            <div className="board-toolbar-flat">
+              <span className="board-toolbar-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18">
+                  <path
+                    d="M12 21s-7-5.2-7-10.2A7 7 0 0 1 12 3a7 7 0 0 1 7 7.8C19 15.8 12 21 12 21Z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  />
+                  <circle cx="12" cy="10" r="2.2" fill="currentColor" />
+                </svg>
+              </span>
+              <div className="board-toolbar-copy">
+                <p className="kicker">{t('inbox.flat')}</p>
+                <strong>{flat.address}</strong>
+                <span>
+                  €{flat.rentWarm} warm · {flat.rooms} rooms · {flat.sqm} m² · {flat.district}
+                </span>
+              </div>
+              <Link className="text-button" to="/address">
+                {t('inbox.change')}
+              </Link>
+            </div>
+            <div className="board-toolbar-actions">
+              <Link className="btn" to="/import">
+                {t('inbox.getApplicants')}
+              </Link>
+              <button type="button" className="btn primary" onClick={loadDemoBoard}>
+                {t('inbox.reloadDemo')}
+              </button>
+            </div>
+          </header>
 
-        <section className="map-side" aria-label="Map">
-          <DashboardMap
-            pins={pins}
-            selectedId={selectedId}
-            layers={layers}
-            availableLayers={requiredLayers}
-            onSelect={onSelect}
-            onToggleLayer={onToggleLayer}
-            onToggleAll={onToggleAll}
-          />
-        </section>
-      </div>
+          <div className="shortlist-grid">
+            <CriteriaBoard />
+
+            <section className="shortlist-panel" aria-label="Applicants">
+              <div className="invite-side-head">
+                <h2>
+                  {listGroup === 'like'
+                    ? t('inbox.list.liked')
+                    : listGroup === 'unsure'
+                      ? t('inbox.list.unsure')
+                      : t('inbox.list.all')}
+                </h2>
+                <span>
+                  {listGroup === 'all'
+                    ? applicants.length === 0
+                      ? t('inbox.zero')
+                      : t('inbox.showing', {
+                          shown: rows.length,
+                          total: applicants.length,
+                          green: goodCount,
+                        })
+                    : t('inbox.inList', { count: rows.length })}
+                </span>
+              </div>
+
+              {applicants.length > 0 ? (
+                <div className="list-tabs" role="tablist" aria-label={t('inbox.list.all')}>
+                  {(
+                    [
+                      ['all', t('inbox.tab.all', { count: ranked.length })],
+                      ['like', t('inbox.tab.liked', { count: likedCount })],
+                      ['unsure', t('inbox.tab.unsure', { count: unsureCount })],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      role="tab"
+                      aria-selected={listGroup === id}
+                      className={listGroup === id ? 'list-tab on' : 'list-tab'}
+                      onClick={() => {
+                        setListGroup(id)
+                        setSelectedId(null)
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {applicants.length > 0 && listGroup === 'all' ? (
+                <div className="filter-bar shortlist-filters" aria-label={t('inbox.list.all')}>
+                  <div className="filter-row">
+                    {(
+                      [
+                        ['all', t('inbox.filter.all')],
+                        ['strong', t('inbox.filter.strong')],
+                        ['weak', t('inbox.filter.weak')],
+                        ['duplicates', t('inbox.filter.duplicates')],
+                      ] as const
+                    ).map(([id, label]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        className={filter === id ? 'btn primary' : 'btn'}
+                        onClick={() => setFilter(id)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <label className="tuner">
+                    <span>
+                      {t('inbox.minMatch')}
+                      <strong>{minPercent}%</strong>
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={minPercent}
+                      onChange={(event) => setMinPercent(Number(event.target.value))}
+                    />
+                  </label>
+                </div>
+              ) : null}
+
+              {applicants.length === 0 ? (
+                <p className="empty">
+                  {t('inbox.empty.none')}{' '}
+                  <Link to="/import">{t('inbox.empty.import')}</Link> {t('inbox.empty.importHint')}
+                </p>
+              ) : requirements.selected.length === 0 ? (
+                <p className="empty">{t('inbox.empty.criteria')}</p>
+              ) : rows.length === 0 ? (
+                <p className="empty">
+                  {listGroup === 'like'
+                    ? t('inbox.empty.liked')
+                    : listGroup === 'unsure'
+                      ? t('inbox.empty.unsure')
+                      : t('inbox.empty.filter')}
+                </p>
+              ) : (
+                <div className="invite-list shortlist-rows">
+                  {rows.map((row) => (
+                    <ApplicantRow
+                      key={row.applicant.id}
+                      number={row.number}
+                      applicant={row.applicant}
+                      verdict={row.verdict}
+                      open={selectedId === row.applicant.id}
+                      listGroup={listGroup}
+                      onToggle={() =>
+                        setSelectedId((current) => (current === row.applicant.id ? null : row.applicant.id))
+                      }
+                      onRemoveFromBoard={() => {
+                        removeApplicant(row.applicant.id)
+                        if (selectedId === row.applicant.id) setSelectedId(null)
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+
+          <InvitePanel flat={flat} ranked={ranked} landlordName={user?.name ?? 'Landlord'} />
+        </>
+      )}
     </div>
   )
 }

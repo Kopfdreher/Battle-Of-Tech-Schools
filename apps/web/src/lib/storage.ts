@@ -2,11 +2,27 @@ export const sessionKey = 'kiezbrief.session'
 export const usersKey = 'kiezbrief.users'
 
 export function requirementsKey(userId: string) {
-  return `kiezbrief.requirements.${userId}`
+  return `kiezbrief.landlord.requirements.${userId}`
 }
 
-export function placesKey(userId: string) {
-  return `kiezbrief.places.${userId}`
+export function flatKey(userId: string) {
+  return `kiezbrief.landlord.flat.${userId}`
+}
+
+export function applicantsKey(userId: string) {
+  return `kiezbrief.landlord.applicants.${userId}`
+}
+
+export function mailboxKey(userId: string) {
+  return `kiezbrief.landlord.mailbox.${userId}`
+}
+
+export function invitedKey(userId: string) {
+  return `kiezbrief.landlord.invited.${userId}`
+}
+
+export function marksKey(userId: string) {
+  return `kiezbrief.landlord.marks.${userId}`
 }
 
 export function readJson<T>(key: string, fallback: T): T {

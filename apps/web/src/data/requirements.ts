@@ -1,41 +1,40 @@
 import { CRITERION_IDS, type CriterionId, type Requirements } from '../types.ts'
-import type { MapLayerId } from '../lib/mapLayers.ts'
 
 export const DEFAULT_SELECTED: CriterionId[] = [
-  'noise',
-  'education',
-  'commute',
-  'playground',
-  'supermarket',
+  'affordability',
+  'contract',
+  'household',
+  'arrearsLetter',
+  'documents',
 ]
 
 export const CRITERIA_SUGGESTIONS: {
   id: CriterionId
   label: string
   short: string
-  mapLayer?: MapLayerId
 }[] = [
-  { id: 'noise', label: 'Noise', short: 'Night street noise', mapLayer: 'noise' },
-  { id: 'education', label: 'Kita / schools', short: 'Walk to Kita or school', mapLayer: 'education' },
-  { id: 'commute', label: 'Commute', short: 'Walk to U- or S-Bahn', mapLayer: 'commute' },
-  { id: 'playground', label: 'Spielplatz', short: 'Walk to a playground', mapLayer: 'playground' },
-  { id: 'nightlife', label: 'Bars / cafés / clubs', short: 'Nearby nightlife', mapLayer: 'nightlife' },
-  { id: 'accessibility', label: 'Accessibility', short: 'Step-free access score', mapLayer: 'accessibility' },
-  { id: 'parking', label: 'Parking lots', short: 'Walk to parking', mapLayer: 'parking' },
-  { id: 'supermarket', label: 'Supermarket', short: 'Walk to groceries', mapLayer: 'supermarket' },
+  { id: 'affordability', label: 'Affordability', short: 'Income relative to warm rent' },
+  { id: 'contract', label: 'Employment contract', short: 'Prefer a permanent contract' },
+  { id: 'household', label: 'Household fit', short: 'People vs number of rooms' },
+  { id: 'arrearsLetter', label: 'No rent arrears', short: 'Mietschuldenfreiheitsbescheinigung' },
+  { id: 'smoking', label: 'No smoking', short: 'Hard no if the applicant smokes' },
+  { id: 'documents', label: 'Document checklist', short: 'Income and employment proof' },
+  { id: 'schufa', label: 'SCHUFA', short: 'Optional credit check on file' },
+  { id: 'employed', label: 'Employed applicant', short: 'Prefer employed over freelance/student' },
+  { id: 'compactHousehold', label: 'Solo or couple', short: 'Prefer 1–2 person households' },
+  { id: 'fullEvidence', label: 'Full evidence pack', short: 'Arrears letter, docs, and SCHUFA' },
 ]
 
 export const defaultRequirements: Requirements = {
   selected: [...DEFAULT_SELECTED],
-  maxNightNoise: 55,
-  maxEducationMeters: 450,
-  maxCommuteMinutes: 12,
-  maxPlaygroundMeters: 350,
-  maxNightlifeMeters: 250,
-  preferCalmNightlife: false,
-  minAccessibilityScore: 60,
-  maxParkingMeters: 350,
-  maxSupermarketMeters: 300,
+  minIncomeMultiple: 3,
+  requirePermanentContract: true,
+  maxHouseholdOverRooms: 0,
+  requireArrearsLetter: true,
+  smokingHardNo: true,
+  requireIncomeProof: true,
+  requireEmploymentProof: true,
+  preferSchufa: false,
 }
 
 export const PRESETS: {
@@ -44,30 +43,31 @@ export const PRESETS: {
   requirements: Requirements
 }[] = [
   {
-    id: 'everyday',
-    label: 'Everyday',
+    id: 'balanced',
+    label: 'Balanced',
     requirements: defaultRequirements,
   },
   {
-    id: 'quiet',
-    label: 'Quiet',
+    id: 'strict',
+    label: 'Strict',
     requirements: {
       ...defaultRequirements,
-      selected: ['noise', 'nightlife', 'commute', 'supermarket'],
-      maxNightNoise: 48,
-      preferCalmNightlife: true,
-      maxNightlifeMeters: 400,
+      selected: ['affordability', 'contract', 'household', 'arrearsLetter', 'smoking', 'documents', 'schufa'],
+      minIncomeMultiple: 3.5,
+      requirePermanentContract: true,
+      preferSchufa: true,
     },
   },
   {
-    id: 'family',
-    label: 'Family',
+    id: 'flexible',
+    label: 'Flexible',
     requirements: {
       ...defaultRequirements,
-      selected: ['noise', 'education', 'playground', 'supermarket', 'commute'],
-      maxEducationMeters: 300,
-      maxPlaygroundMeters: 200,
-      maxNightNoise: 52,
+      selected: ['affordability', 'household', 'arrearsLetter', 'documents'],
+      minIncomeMultiple: 2.5,
+      requirePermanentContract: false,
+      smokingHardNo: false,
+      preferSchufa: false,
     },
   },
 ]
@@ -89,28 +89,32 @@ export function sanitizeRequirements(value: unknown): Requirements {
 
   return {
     selected: selected.length > 0 ? selected : [...DEFAULT_SELECTED],
-    maxNightNoise: numberOr(raw.maxNightNoise, defaultRequirements.maxNightNoise, 40, 75),
-    maxEducationMeters: numberOr(raw.maxEducationMeters, defaultRequirements.maxEducationMeters, 50, 1500),
-    maxCommuteMinutes: numberOr(raw.maxCommuteMinutes, defaultRequirements.maxCommuteMinutes, 2, 25),
-    maxPlaygroundMeters: numberOr(raw.maxPlaygroundMeters, defaultRequirements.maxPlaygroundMeters, 50, 1000),
-    maxNightlifeMeters: numberOr(raw.maxNightlifeMeters, defaultRequirements.maxNightlifeMeters, 50, 800),
-    preferCalmNightlife:
-      typeof raw.preferCalmNightlife === 'boolean'
-        ? raw.preferCalmNightlife
-        : defaultRequirements.preferCalmNightlife,
-    minAccessibilityScore: numberOr(
-      raw.minAccessibilityScore,
-      defaultRequirements.minAccessibilityScore,
+    minIncomeMultiple: numberOr(raw.minIncomeMultiple, defaultRequirements.minIncomeMultiple, 1, 6),
+    requirePermanentContract:
+      typeof raw.requirePermanentContract === 'boolean'
+        ? raw.requirePermanentContract
+        : defaultRequirements.requirePermanentContract,
+    maxHouseholdOverRooms: numberOr(
+      raw.maxHouseholdOverRooms,
+      defaultRequirements.maxHouseholdOverRooms,
       0,
-      100,
+      3,
     ),
-    maxParkingMeters: numberOr(raw.maxParkingMeters, defaultRequirements.maxParkingMeters, 50, 1000),
-    maxSupermarketMeters: numberOr(
-      raw.maxSupermarketMeters,
-      defaultRequirements.maxSupermarketMeters,
-      50,
-      1000,
-    ),
+    requireArrearsLetter:
+      typeof raw.requireArrearsLetter === 'boolean'
+        ? raw.requireArrearsLetter
+        : defaultRequirements.requireArrearsLetter,
+    smokingHardNo:
+      typeof raw.smokingHardNo === 'boolean' ? raw.smokingHardNo : defaultRequirements.smokingHardNo,
+    requireIncomeProof:
+      typeof raw.requireIncomeProof === 'boolean'
+        ? raw.requireIncomeProof
+        : defaultRequirements.requireIncomeProof,
+    requireEmploymentProof:
+      typeof raw.requireEmploymentProof === 'boolean'
+        ? raw.requireEmploymentProof
+        : defaultRequirements.requireEmploymentProof,
+    preferSchufa: typeof raw.preferSchufa === 'boolean' ? raw.preferSchufa : defaultRequirements.preferSchufa,
   }
 }
 
@@ -128,16 +132,30 @@ export function toggleCriterion(requirements: Requirements, id: CriterionId): Re
   return { ...requirements, selected }
 }
 
-export function mapLayersForRequirements(requirements: Requirements): MapLayerId[] {
-  const layers = new Set<MapLayerId>()
-  for (const suggestion of CRITERIA_SUGGESTIONS) {
-    if (suggestion.mapLayer && requirements.selected.includes(suggestion.id)) {
-      layers.add(suggestion.mapLayer)
-    }
+export function reorderCriteria(
+  requirements: Requirements,
+  fromIndex: number,
+  toIndex: number,
+): Requirements {
+  if (
+    fromIndex === toIndex ||
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= requirements.selected.length ||
+    toIndex >= requirements.selected.length
+  ) {
+    return requirements
   }
-  return [...layers]
+  const selected = [...requirements.selected]
+  const [moved] = selected.splice(fromIndex, 1)
+  selected.splice(toIndex, 0, moved)
+  return { ...requirements, selected }
+}
+
+export function criterionMeta(id: CriterionId) {
+  return CRITERIA_SUGGESTIONS.find((item) => item.id === id) ?? { id, label: id, short: '' }
 }
 
 export function selectedCriteriaLabels(requirements: Requirements) {
-  return CRITERIA_SUGGESTIONS.filter((item) => requirements.selected.includes(item.id))
+  return requirements.selected.map((id) => criterionMeta(id))
 }

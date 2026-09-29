@@ -1,27 +1,35 @@
 import type { ReactNode } from 'react'
+import { useLocale } from '../context/LocaleContext.tsx'
 import { Brand } from './Brand.tsx'
+import { LanguageSwitcher } from './LanguageSwitcher.tsx'
 
 export function AuthLayout({ children }: { children: ReactNode }) {
+  const { t } = useLocale()
   return (
     <div className="auth">
       <section className="auth-story">
+        <div className="auth-story-top">
+          <p className="auth-audience">{t('auth.audience')}</p>
+          <LanguageSwitcher compact />
+        </div>
         <Brand />
-        <h1>Is this street a good place to live?</h1>
-        <p className="lede">
-          Other apps already filter rent, rooms, and size. Kiezbrief checks the environment around a Berlin address
-          with open data: noise, Kita and schools, commute, Spielplatz, bars and cafés, accessibility, parking, and
-          supermarket.
-        </p>
+        <h1>{t('auth.title')}</h1>
+        <p className="lede">{t('auth.lede')}</p>
         <ol className="points">
           <li>
             <span>1</span>
-            <p>Paste or write any Berlin address you want to check.</p>
+            <p>{t('auth.step1')}</p>
           </li>
           <li>
             <span>2</span>
-            <p>Score the surroundings against the Berlin data criteria you care about.</p>
+            <p>{t('auth.step2')}</p>
+          </li>
+          <li>
+            <span>3</span>
+            <p>{t('auth.step3')}</p>
           </li>
         </ol>
+        <p className="auth-foot">{t('auth.foot')}</p>
       </section>
       <section className="auth-panel">
         <div className="auth-card panel">{children}</div>

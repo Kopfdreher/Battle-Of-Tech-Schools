@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { AuthLayout } from '../components/AuthLayout.tsx'
+import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
 
 export function LoginPage() {
   const { login } = useSession()
+  const { t } = useLocale()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -15,7 +17,7 @@ export function LoginPage() {
     event.preventDefault()
     setError(null)
     if (!email.includes('@') || password.length < 8) {
-      setError('Use the email and password from your account. Passwords are at least 8 characters.')
+      setError(t('login.error.validation'))
       return
     }
     setPending(true)
@@ -23,7 +25,7 @@ export function LoginPage() {
       await login(email, password)
       void navigate({ to: '/' })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not log in.')
+      setError(err instanceof Error ? err.message : t('login.error.generic'))
     } finally {
       setPending(false)
     }
@@ -31,12 +33,12 @@ export function LoginPage() {
 
   return (
     <AuthLayout>
-      <p className="kicker">Log in</p>
-      <h2>Welcome back</h2>
-      <p className="lede">Then look up a Berlin address and score the street around it.</p>
+      <p className="kicker">{t('login.kicker')}</p>
+      <h2>{t('login.title')}</h2>
+      <p className="lede">{t('login.lede')}</p>
       <form className="form" onSubmit={onSubmit} noValidate>
         <div className="field">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">{t('login.email')}</label>
           <input
             id="email"
             name="email"
@@ -48,7 +50,7 @@ export function LoginPage() {
           />
         </div>
         <div className="field">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">{t('login.password')}</label>
           <input
             id="password"
             name="password"
@@ -65,11 +67,11 @@ export function LoginPage() {
           </p>
         ) : null}
         <button className="btn primary full" type="submit" disabled={pending}>
-          {pending ? 'Checking…' : 'Log in'}
+          {pending ? t('login.pending') : t('login.submit')}
         </button>
       </form>
       <p className="switch">
-        New here? <Link to="/signup">Create an account</Link>
+        {t('login.switch')} <Link to="/signup">{t('login.create')}</Link>
       </p>
     </AuthLayout>
   )

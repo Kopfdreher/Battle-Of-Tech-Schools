@@ -6,11 +6,10 @@ import {
   sameRequirements,
   toggleCriterion,
 } from '../data/requirements.ts'
-import { LISTINGS } from '../data/listings.ts'
+import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
-import { evaluate } from '../lib/match.ts'
 
-type SliderKey = Exclude<keyof Requirements, 'selected' | 'preferCalmNightlife'>
+type SliderKey = 'minIncomeMultiple' | 'maxHouseholdOverRooms'
 
 const tuners: {
   key: SliderKey
@@ -22,169 +21,150 @@ const tuners: {
   format: (value: number) => string
 }[] = [
   {
-    key: 'maxNightNoise',
-    criterion: 'noise',
-    label: 'Max night noise',
-    min: 40,
-    max: 75,
-    step: 1,
-    format: (value) => `${value} dB`,
+    key: 'minIncomeMultiple',
+    criterion: 'affordability',
+    label: 'Min income ÷ warm rent',
+    min: 1,
+    max: 6,
+    step: 0.1,
+    format: (value) => `${value.toFixed(1)}×`,
   },
   {
-    key: 'maxEducationMeters',
-    criterion: 'education',
-    label: 'Max walk to Kita / school',
-    min: 50,
-    max: 1500,
-    step: 10,
-    format: (value) => `${value} m`,
-  },
-  {
-    key: 'maxCommuteMinutes',
-    criterion: 'commute',
-    label: 'Max commute walk',
-    min: 2,
-    max: 25,
-    step: 1,
-    format: (value) => `${value} min`,
-  },
-  {
-    key: 'maxPlaygroundMeters',
-    criterion: 'playground',
-    label: 'Max walk to Spielplatz',
-    min: 50,
-    max: 1000,
-    step: 10,
-    format: (value) => `${value} m`,
-  },
-  {
-    key: 'maxNightlifeMeters',
-    criterion: 'nightlife',
-    label: 'Max walk to café / bar',
-    min: 50,
-    max: 800,
-    step: 10,
-    format: (value) => `${value} m`,
-  },
-  {
-    key: 'minAccessibilityScore',
-    criterion: 'accessibility',
-    label: 'Min accessibility score',
+    key: 'maxHouseholdOverRooms',
+    criterion: 'household',
+    label: 'Extra people over room count',
     min: 0,
-    max: 100,
+    max: 3,
     step: 1,
-    format: (value) => `${value}`,
-  },
-  {
-    key: 'maxParkingMeters',
-    criterion: 'parking',
-    label: 'Max walk to parking',
-    min: 50,
-    max: 1000,
-    step: 10,
-    format: (value) => `${value} m`,
-  },
-  {
-    key: 'maxSupermarketMeters',
-    criterion: 'supermarket',
-    label: 'Max walk to supermarket',
-    min: 50,
-    max: 1000,
-    step: 10,
-    format: (value) => `${value} m`,
+    format: (value) => (value === 0 ? 'Exact fit' : `+${value}`),
   },
 ]
 
-export function RequirementsEditor() {
-  const { requirements, updateRequirements } = useSession()
-  const matched = LISTINGS.filter((listing) => evaluate(listing, requirements).passes).length
-  const active = PRESETS.find((preset) => sameRequirements(preset.requirements, requirements))
-  const selected = new Set(requirements.selected)
-  const activeTuners = tuners.filter((tuner) => selected.has(tuner.criterion))
+const toggles: {
+  key: keyof Pick<
+    Requirements,
+    | 'requirePermanentContract'
+    | 'requireArrearsLetter'
+    | 'smokingHardNo'
+    | 'requireIncomeProof'
+    | 'requireEmploymentProof'
+    | 'preferSchufa'
+  >
+  criterion: CriterionId
+  label: string
+}[] = [
+  { key: 'requirePermanentContract', criterion: 'contract', label: 'Require permanent contract' },
+  { key: 'requireArrearsLetter', criterion: 'arrearsLetter', label: 'Require no-arrears letter' },
+  { key: 'smokingHardNo', criterion: 'smoking', label: 'Smoking is a hard no' },
+  { key: 'requireIncomeProof', criterion: 'documents', label: 'Require income proof' },
+  { key: 'requireEmploymentProof', criterion: 'documents', label: 'Require employment proof' },
+  { key: 'preferSchufa', criterion: 'schufa', label: 'Prefer SCHUFA on file' },
+]
 
-  function patch(next: Partial<Requirements>) {
-    updateRequirements({ ...requirements, ...next })
+export function RequirementsEditor() {
+  const { requirements, updateRequirements, flat, applicants } = useSession()
+  const { t } = useLocale()
+
+  function patch(partial: Partial<Requirements>) {
+    updateRequirements({ ...requirements, ...partial })
   }
 
   return (
-    <section className="req-simple" aria-label="Required criteria">
-      <div className="req-top">
-        <div>
-          <p className="req-count">
-            <strong>{matched}</strong>
-            <span>of {LISTINGS.length} places</span>
-          </p>
-          <p className="hint">Pick what matters around the flat. Limits appear only for what you select.</p>
-        </div>
-        <div className="req-packs" role="group" aria-label="Suggestion packs">
+    <div className="req-editor">
+      <section className="panel">
+        <p className="kicker">Presets</p>
+        <div className="preset-row">
           {PRESETS.map((preset) => (
             <button
               key={preset.id}
               type="button"
-              className={active?.id === preset.id ? 'pack on' : 'pack'}
-              aria-pressed={active?.id === preset.id}
+              className={
+                sameRequirements(requirements, preset.requirements) ? 'btn primary' : 'btn'
+              }
               onClick={() => updateRequirements(preset.requirements)}
             >
               {preset.label}
             </button>
           ))}
-          <button type="button" className="pack" onClick={() => updateRequirements(defaultRequirements)}>
+          <button type="button" className="btn ghost" onClick={() => updateRequirements(defaultRequirements)}>
             Reset
           </button>
         </div>
-      </div>
+      </section>
 
-      <div className="req-pills" role="group" aria-label="Criteria">
-        {CRITERIA_SUGGESTIONS.map((item) => {
-          const on = selected.has(item.id)
-          return (
-            <button
-              key={item.id}
-              type="button"
-              className={on ? 'req-pill on' : 'req-pill'}
-              aria-pressed={on}
-              onClick={() => updateRequirements(toggleCriterion(requirements, item.id))}
-            >
-              <span className="req-pill-label">{item.label}</span>
-              <span className="req-pill-short">{item.short}</span>
-            </button>
-          )
-        })}
-      </div>
+      <section className="panel">
+        <p className="kicker">Required criteria</p>
+        <h2>What you weigh for this flat</h2>
+        <p className="hint">
+          Scoring uses structured fields only. Free-text messages are never part of the match — that keeps screening
+          fairer under German anti-discrimination rules.
+        </p>
+        <ul className="criteria-pick">
+          {CRITERIA_SUGGESTIONS.map((item) => {
+            const on = requirements.selected.includes(item.id)
+            return (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className={on ? 'choice on' : 'choice'}
+                  onClick={() => updateRequirements(toggleCriterion(requirements, item.id))}
+                >
+                  <strong>{t(`criterion.${item.id}`)}</strong>
+                  <span>{t(`criterion.short.${item.id}`)}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
 
-      {activeTuners.length > 0 ? (
-        <div className="req-tune">
-          {activeTuners.map((tuner) => (
-            <label className="req-slider" key={tuner.key}>
-              <span className="req-slider-top">
-                <span>{tuner.label}</span>
-                <strong>{tuner.format(requirements[tuner.key] as number)}</strong>
-              </span>
-              <input
-                type="range"
-                min={tuner.min}
-                max={tuner.max}
-                step={tuner.step}
-                value={requirements[tuner.key] as number}
-                aria-label={tuner.label}
-                onChange={(event) => patch({ [tuner.key]: Number(event.target.value) })}
-              />
-            </label>
-          ))}
-          {selected.has('nightlife') ? (
-            <label className="req-check">
-              <input
-                type="checkbox"
-                checked={requirements.preferCalmNightlife}
-                onChange={(event) => patch({ preferCalmNightlife: event.target.checked })}
-              />
-              <span>Prefer calmer nightlife streets</span>
-            </label>
-          ) : null}
+      <section className="panel">
+        <p className="kicker">Limits</p>
+        <h2>Tune the thresholds</h2>
+        {flat ? (
+          <p className="hint">
+            Against {flat.address}: €{flat.rentWarm} warm · {flat.rooms} rooms · {applicants.length} applicants on
+            the board.
+          </p>
+        ) : (
+          <p className="hint">Add your flat first so affordability and household fit use the real rent and rooms.</p>
+        )}
+        <div className="tuner-list">
+          {tuners.map((tuner) => {
+            if (!requirements.selected.includes(tuner.criterion)) return null
+            const value = requirements[tuner.key]
+            return (
+              <label key={tuner.key} className="tuner">
+                <span>
+                  {tuner.label}
+                  <strong>{tuner.format(value)}</strong>
+                </span>
+                <input
+                  type="range"
+                  min={tuner.min}
+                  max={tuner.max}
+                  step={tuner.step}
+                  value={value}
+                  onChange={(event) => patch({ [tuner.key]: Number(event.target.value) })}
+                />
+              </label>
+            )
+          })}
+          {toggles.map((toggle) => {
+            if (!requirements.selected.includes(toggle.criterion)) return null
+            return (
+              <label key={toggle.key} className="check-row">
+                <input
+                  type="checkbox"
+                  checked={requirements[toggle.key]}
+                  onChange={(event) => patch({ [toggle.key]: event.target.checked })}
+                />
+                <span>{toggle.label}</span>
+              </label>
+            )
+          })}
         </div>
-      ) : (
-        <p className="empty soft">Select at least one criterion above.</p>
-      )}
-    </section>
+      </section>
+    </div>
   )
 }

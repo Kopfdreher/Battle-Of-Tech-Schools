@@ -1,119 +1,111 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useSession } from '../context/session.ts'
-import { noiseLabel, osmEmbed, osmLink } from '../lib/format.ts'
-import { evaluate } from '../lib/match.ts'
-import { toListing } from '../lib/places.ts'
+import { evaluateApplicant, matchTone } from '../lib/match.ts'
 
 export function ListingPage() {
-  const { id } = useParams({ from: '/_app/listings/$id' })
+  const { id } = useParams({ from: '/_app/applicants/$id' })
   const navigate = useNavigate()
-  const { places, requirements, removePlace } = useSession()
-  const place = places.find((item) => item.id === id)
+  const { flat, applicants, requirements, removeApplicant, marks, setApplicantMark } = useSession()
+  const applicant = applicants.find((item) => item.id === id)
 
-  if (!place) {
+  if (!flat) {
     return (
       <div>
         <Link className="back" to="/">
-          Back to Kiezboard
+          Back to shortlist
         </Link>
-        <p className="empty">That address is not on Kiezboard. Paste or type it on the board to add it.</p>
+        <p className="empty">Add your flat first, then open an applicant.</p>
       </div>
     )
   }
 
-  const listing = toListing(place)
-  const verdict = evaluate(listing, requirements)
-  const facts = [
-    {
-      label: 'Noise',
-      value: `${place.berlin.nightNoiseDb} dB`,
-      note: `${noiseLabel(place.berlin.nightNoiseDb)} · ${place.berlin.noiseSource}`,
-    },
-    {
-      label: 'Kita / schools',
-      value: `${place.berlin.education.meters} m`,
-      note: `${place.berlin.education.kita} · ${place.berlin.education.school}`,
-    },
-    {
-      label: 'Commute',
-      value: `${place.berlin.transit.minutes} min`,
-      note: `${place.berlin.transit.name} · ${place.berlin.transit.line}`,
-    },
-    {
-      label: 'Spielplatz',
-      value: `${place.berlin.playground.meters} m`,
-      note: place.berlin.playground.name,
-    },
-    {
-      label: 'Bars / cafés / clubs',
-      value: `${place.berlin.nightlife.meters} m`,
-      note: `${place.berlin.nightlife.name} · ${place.berlin.nightlife.scene}`,
-    },
-    {
-      label: 'Accessibility',
-      value: `${place.berlin.accessibility.score}`,
-      note: place.berlin.accessibility.label,
-    },
-    {
-      label: 'Parking lots',
-      value: `${place.berlin.parking.meters} m`,
-      note: place.berlin.parking.name,
-    },
-    {
-      label: 'Supermarket',
-      value: `${place.berlin.supermarket.meters} m`,
-      note: place.berlin.supermarket.name,
-    },
+  if (!applicant) {
+    return (
+      <div>
+        <Link className="back" to="/">
+          Back to shortlist
+        </Link>
+        <p className="empty">That applicant is not on the board.</p>
+      </div>
+    )
+  }
+
+  const verdict = evaluateApplicant(applicant, flat, requirements, applicants)
+  const tone = matchTone(verdict)
+  const mark = marks[applicant.id] ?? null
+  const docs = [
+    { label: 'No-arrears letter', ok: applicant.hasArrearsLetter },
+    { label: 'Income proof', ok: applicant.hasIncomeProof },
+    { label: 'Employment proof', ok: applicant.hasEmploymentProof },
+    { label: 'SCHUFA', ok: applicant.hasSchufa },
   ]
 
   return (
     <article className="detail">
       <Link className="back" to="/">
-        Back to Kiezboard
+        Back to shortlist
       </Link>
       <header className="page-head">
         <div>
           <p className="kicker">
-            {place.district || 'Berlin'} · {place.bezirk}
+            {tone === 'good' ? 'Strong match' : 'Weak match'} · {verdict.matchRate}%
           </p>
-          <h1>{place.address}</h1>
+          <h1>{applicant.displayName}</h1>
           <p className="lede">
-            Liveability {verdict.matchRate}% from Berlin open data
-            {verdict.passes ? ' · clears your environment criteria' : ' · held back by your environment criteria'}
+            €{applicant.netIncomeMonthly} net / month · {applicant.householdSize} in household ·{' '}
+            {applicant.contractType} contract
           </p>
-          <p>{place.sourceNote}</p>
+          <p className="hint">
+            For flat {flat.address} (€{flat.rentWarm} warm · {flat.rooms} rooms). Free-text messages are not used in
+            the score.
+          </p>
         </div>
       </header>
 
-      <section className="panel">
-        <p className="kicker">Berlin open data</p>
-        <h2>What the city data says about this street</h2>
-        <p>{place.berlin.note}</p>
-        <dl className="facts">
-          {facts.map((fact) => (
-            <div key={fact.label}>
-              <dt>{fact.label}</dt>
-              <dd>
-                <strong>{fact.value}</strong>
-                <span>{fact.note}</span>
-              </dd>
-            </div>
-          ))}
-        </dl>
-        <p className="footnote">
-          Noise, Kita and schools, commute, Spielplatz, nightlife, accessibility, parking, and supermarket follow
-          Berlin open data layers. Figures here are a preview score for this address.
-        </p>
-      </section>
+      {verdict.flags.length > 0 ? (
+        <section className="panel">
+          <p className="kicker">Flags</p>
+          <ul className="flag-list">
+            {verdict.flags.map((flag) => (
+              <li key={flag}>{flag}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
-      <section className="map-frame">
-        <iframe title={`Map of ${place.address}`} src={osmEmbed(place.lat, place.lng)} loading="lazy" />
-        <p>
-          <a href={osmLink(place.lat, place.lng)} target="_blank" rel="noreferrer">
-            Open {place.address} in OpenStreetMap
-          </a>
-        </p>
-      </section>
+      <div className="detail-grid">
+        <section className="panel">
+          <p className="kicker">Structured fields</p>
+          <h2>What we score</h2>
+          <dl className="mail-dl">
+            <dt>Income</dt>
+            <dd>€{applicant.netIncomeMonthly} net</dd>
+            <dt>Household</dt>
+            <dd>{applicant.householdSize}</dd>
+            <dt>Contract</dt>
+            <dd>{applicant.contractType}</dd>
+            <dt>Employment</dt>
+            <dd>{applicant.employmentType}</dd>
+            <dt>Smokes</dt>
+            <dd>{applicant.smokes ? 'Yes' : 'No'}</dd>
+          </dl>
+          <p className="invite-mail">{applicant.messagePreview}</p>
+        </section>
+        <section className="panel">
+          <p className="kicker">Documents</p>
+          <h2>Checklist</h2>
+          <ul className="checklist">
+            {docs.map((doc) => (
+              <li key={doc.label} className={doc.ok ? 'ok' : 'bad'}>
+                <span className="pill">{doc.ok ? 'Yes' : 'No'}</span>
+                <div>
+                  <strong>{doc.label}</strong>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
 
       <section className="panel checklist-wrap">
         <h2>Against your requirements</h2>
@@ -128,19 +120,30 @@ export function ListingPage() {
             </li>
           ))}
         </ul>
-        <div className="place-actions">
-          <Link className="btn" to="/address" search={{ q: place.address }}>
-            Look up again
-          </Link>
+        <div className="place-actions mark-actions">
+          <button
+            type="button"
+            className={mark === 'like' ? 'btn primary' : 'btn'}
+            onClick={() => setApplicantMark(applicant.id, mark === 'like' ? null : 'like')}
+          >
+            {mark === 'like' ? 'Liked' : 'Mark as like'}
+          </button>
+          <button
+            type="button"
+            className={mark === 'unsure' ? 'btn primary' : 'btn'}
+            onClick={() => setApplicantMark(applicant.id, mark === 'unsure' ? null : 'unsure')}
+          >
+            {mark === 'unsure' ? 'Not sure' : 'Mark as not sure'}
+          </button>
           <button
             type="button"
             className="btn ghost"
             onClick={() => {
-              removePlace(place.id)
+              removeApplicant(applicant.id)
               void navigate({ to: '/' })
             }}
           >
-            Remove address
+            Remove applicant
           </button>
         </div>
       </section>
