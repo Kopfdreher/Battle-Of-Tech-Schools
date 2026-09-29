@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from '@/components/mietmatch/nav'
 import { ApplicantRow, type ListGroup } from '../components/ApplicantRow'
 import { CriteriaBoard } from '../components/CriteriaBoard'
@@ -18,12 +18,6 @@ export function InboxPage() {
   const [listGroup, setListGroup] = useState<ListGroup>('all')
   const [filter, setFilter] = useState<MatchFilter>('all')
   const [minPercent, setMinPercent] = useState(0)
-
-  useEffect(() => {
-    if (user && !flat && applicants.length === 0) {
-      loadDemoBoard()
-    }
-  }, [user, flat, applicants.length, loadDemoBoard])
 
   const ranked = useMemo(() => {
     if (!flat) return []
