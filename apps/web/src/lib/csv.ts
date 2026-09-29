@@ -196,8 +196,15 @@ Leila Hofmann,leila.hofmann@example.com,2800,2,fixed,employed,yes,yes,yes,yes,no
 export function buildDemoCsv(count = 100): string {
   const first = ['Mara', 'Jonas', 'Leila', 'Samir', 'Nina', 'Erik', 'Ayla', 'Tomas', 'Priya', 'Felix', 'Hanna', 'Omar', 'Clara', 'Luis', 'Sofia']
   const last = ['Ellison', 'Richter', 'Hofmann', 'Okonkwo', 'Vogt', 'Lindqvist', 'Demir', 'Alvarez', 'Shah', 'Braun', 'Sjoberg', 'Khan', 'Weber', 'Silva', 'Novak']
-  const rows = [CSV_TEMPLATE.trim().split('\n')[0]]
-  for (let i = 0; i < count; i += 1) {
+  const showcase = [
+    'Mara Ellison,mara.ellison@example.com,4200,2,permanent,employed,yes,yes,yes,yes,no',
+    'Jonas Richter,jonas.richter@example.com,3100,1,permanent,employed,yes,yes,yes,no,no',
+    'Leila Hofmann,leila.hofmann@example.com,2800,2,fixed,employed,yes,yes,yes,yes,no',
+    'Samir Okonkwo,samir.okonkwo@example.com,5100,3,permanent,employed,yes,yes,yes,yes,no',
+    'Nina Vogt,nina.vogt@example.com,2400,1,freelance,self-employed,yes,yes,no,no,yes',
+  ]
+  const rows = [CSV_TEMPLATE.trim().split('\n')[0], ...showcase]
+  for (let i = 0; i < Math.max(0, count - showcase.length); i += 1) {
     const f = first[i % first.length]
     const l = last[(i * 3) % last.length]
     const name = `${f} ${l}`

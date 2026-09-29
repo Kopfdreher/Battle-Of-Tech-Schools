@@ -18,6 +18,14 @@ export default defineConfig({
       { find: "@", replacement: path.resolve(import.meta.dirname, "./src") },
     ],
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:3000",
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     chunkSizeWarningLimit: 1000,
     rollupOptions: {

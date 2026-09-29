@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ApplicantRow, type ListGroup } from '../components/ApplicantRow.tsx'
+import { inspectApplicants, type AuthenticityReport } from '../lib/verifyClient.ts'
 import { CriteriaBoard } from '../components/CriteriaBoard.tsx'
 import { InvitePanel } from '../components/InvitePanel.tsx'
 import { useLocale } from '../context/LocaleContext.tsx'
@@ -16,12 +17,21 @@ export function InboxPage() {
   const [listGroup, setListGroup] = useState<ListGroup>('all')
   const [filter, setFilter] = useState<MatchFilter>('all')
   const [minPercent, setMinPercent] = useState(0)
+  const [audits, setAudits] = useState<Record<string, AuthenticityReport>>({})
 
   useEffect(() => {
     if (user && !flat && applicants.length === 0) {
       loadDemoBoard()
     }
   }, [user, flat, applicants.length, loadDemoBoard])
+
+  useEffect(() => {
+    if (applicants.length === 0) {
+      setAudits({})
+      return
+    }
+    void inspectApplicants(applicants).then(setAudits)
+  }, [applicants])
 
   const ranked = useMemo(() => {
     if (!flat) return []
@@ -257,6 +267,7 @@ export function InboxPage() {
                       verdict={row.verdict}
                       open={selectedId === row.applicant.id}
                       listGroup={listGroup}
+                      report={audits[row.applicant.id]}
                       onToggle={() =>
                         setSelectedId((current) => (current === row.applicant.id ? null : row.applicant.id))
                       }

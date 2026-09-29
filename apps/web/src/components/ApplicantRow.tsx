@@ -1,8 +1,12 @@
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession, type ApplicantMark } from '../context/session.ts'
 import { matchTone, type Verdict } from '../lib/match.ts'
+import type { AuthenticityReport } from '../lib/authenticityEngine.ts'
 import type { Applicant } from '../types.ts'
+import { AuthenticityBadge } from './AuthenticityBadge.tsx'
+import { InspectionDrawer } from './InspectionDrawer.tsx'
 
 export type ListGroup = 'all' | 'like' | 'unsure'
 
@@ -12,6 +16,7 @@ type Props = {
   verdict: Verdict
   open: boolean
   listGroup: ListGroup
+  report?: AuthenticityReport
   onToggle: () => void
   onRemoveFromBoard: () => void
 }
@@ -49,11 +54,13 @@ export function ApplicantRow({
   verdict,
   open,
   listGroup,
+  report,
   onToggle,
   onRemoveFromBoard,
 }: Props) {
   const { marks, setApplicantMark } = useSession()
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
+  const [inspectOpen, setInspectOpen] = useState(false)
   const tone = matchTone(verdict)
   const mark = marks[applicant.id] ?? null
 
@@ -101,7 +108,10 @@ export function ApplicantRow({
             {number}
           </span>
           <span className="invite-copy">
-            <strong>{applicant.displayName}</strong>
+            <span className="invite-name-line">
+              <strong>{applicant.displayName}</strong>
+              <AuthenticityBadge report={report} locale={locale} onInspect={() => setInspectOpen(true)} />
+            </span>
             <small>
               {peopleLabel} · {applicant.contractType} · {matchLabel}
             </small>
@@ -200,12 +210,16 @@ export function ApplicantRow({
                 {t('row.removeBoard')}
               </button>
             ) : null}
+            <button type="button" className="btn" onClick={() => setInspectOpen(true)}>
+              {t('verify.inspect')}
+            </button>
             <Link className="btn" to="/applicants/$id" params={{ id: applicant.id }}>
               {t('row.open')}
             </Link>
           </div>
         </div>
       ) : null}
+      <InspectionDrawer open={inspectOpen} report={report} onClose={() => setInspectOpen(false)} />
     </article>
   )
 }

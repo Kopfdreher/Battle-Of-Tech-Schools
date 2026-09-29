@@ -1,12 +1,29 @@
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
+import { AuthenticityBadge } from '../components/AuthenticityBadge.tsx'
+import { InspectionDrawer } from '../components/InspectionDrawer.tsx'
+import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
+import type { AuthenticityReport } from '../lib/authenticityEngine.ts'
 import { evaluateApplicant, matchTone } from '../lib/match.ts'
+import { inspectApplicant } from '../lib/verifyClient.ts'
 
 export function ListingPage() {
   const { id } = useParams({ from: '/_app/applicants/$id' })
   const navigate = useNavigate()
+  const { locale, t } = useLocale()
   const { flat, applicants, requirements, removeApplicant, marks, setApplicantMark } = useSession()
   const applicant = applicants.find((item) => item.id === id)
+  const [report, setReport] = useState<AuthenticityReport | undefined>()
+  const [inspectOpen, setInspectOpen] = useState(false)
+
+  useEffect(() => {
+    if (!applicant) {
+      setReport(undefined)
+      return
+    }
+    void inspectApplicant(applicant).then(setReport)
+  }, [applicant])
 
   if (!flat) {
     return (
@@ -50,7 +67,10 @@ export function ListingPage() {
           <p className="kicker">
             {tone === 'good' ? 'Strong match' : 'Weak match'} · {verdict.matchRate}%
           </p>
-          <h1>{applicant.displayName}</h1>
+          <div className="detail-name-row">
+            <h1>{applicant.displayName}</h1>
+            <AuthenticityBadge report={report} locale={locale} onInspect={() => setInspectOpen(true)} />
+          </div>
           <p className="lede">
             €{applicant.netIncomeMonthly} net / month · {applicant.householdSize} in household ·{' '}
             {applicant.contractType} contract
@@ -59,6 +79,11 @@ export function ListingPage() {
             For flat {flat.address} (€{flat.rentWarm} warm · {flat.rooms} rooms). Free-text messages are not used in
             the score.
           </p>
+          <div className="place-actions">
+            <button type="button" className="btn primary" onClick={() => setInspectOpen(true)}>
+              {t('verify.inspect')}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -147,6 +172,7 @@ export function ListingPage() {
           </button>
         </div>
       </section>
+      <InspectionDrawer open={inspectOpen} report={report} onClose={() => setInspectOpen(false)} />
     </article>
   )
 }
