@@ -1,12 +1,33 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import path from "path";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 
-
-// https://vite.dev/config/
 export default defineConfig({
-  server: {
-    host: true, // binds to 0.0.0.0
+  plugins: [
+    tanstackRouter({
+      target: "react",
+      autoCodeSplitting: true,
+    }),
+    react(),
+    tailwindcss(),
+  ],
+  resolve: {
+    alias: [
+      { find: "@", replacement: path.resolve(import.meta.dirname, "./src") },
+    ],
   },
-  plugins: [tanstackRouter(), react()],
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            return "vendor";
+          }
+        },
+      },
+    },
+  },
 });
