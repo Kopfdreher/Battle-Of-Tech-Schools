@@ -158,7 +158,7 @@ export function SessionProvider({
 }) {
   const [state, setState] = useState<SessionState>(() => withBoard(emptyState(), serverBoard))
   const [ready, setReady] = useState(false)
-  const [namesVisible, setNamesVisibleState] = useState(true)
+  const [namesVisible, setNamesVisibleState] = useState(false)
   const session = authClient.useSession()
 
   useEffect(() => {
@@ -169,7 +169,7 @@ export function SessionProvider({
 
     if (!betterUser) {
       setState(withBoard(emptyState(), serverBoard))
-      setNamesVisibleState(true)
+      setNamesVisibleState(false)
       setReady(true)
       return
     }
@@ -178,7 +178,7 @@ export function SessionProvider({
     const applicants = loadApplicants(userId!)
     const mailbox = loadMailbox(userId!)
     const storedNames = readJson<boolean | null>(namesVisibleKey(userId!), null)
-    setNamesVisibleState(storedNames === null ? true : Boolean(storedNames))
+    setNamesVisibleState(storedNames === null ? false : Boolean(storedNames))
     setState(withBoard({
       user: { id: betterUser.id, name: betterUser.name, email: betterUser.email },
       onboardingDone: resolveOnboardingDone(userId!, flat, applicants, mailbox),
