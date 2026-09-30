@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -164,7 +165,7 @@ export function InspectionModal({
     report.layoutCheck,
   ];
 
-  return (
+  const content = (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
@@ -383,4 +384,6 @@ export function InspectionModal({
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(content, document.body) : null;
 }

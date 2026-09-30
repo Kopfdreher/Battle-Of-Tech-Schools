@@ -54,7 +54,7 @@ export default async function ApplicationPage({
 
   const { application, listing } = result.row;
   const flags = riskFlagList(application.riskFlags);
-  const money = affordability(Number(application.income), Number(listing.rentAmount));
+  const money = affordability(Number(application.netIncomeMonthly), Number(listing.rentAmount));
   const contract = contractSecurity(application);
   const fit = householdFit(application.householdSize, listing.rooms);
   const metrics = [
@@ -75,7 +75,7 @@ export default async function ApplicationPage({
       <header className="flex flex-col gap-2">
         <p className="text-sm text-zinc-500">{listing.address}</p>
         <h1 className="text-2xl font-semibold tracking-tight">
-          <BlurredName as="span" name={application.applicantName} />
+          <BlurredName as="span" name={application.displayName} />
         </h1>
         <p className="text-sm capitalize text-zinc-600">
           Status: {application.status}
@@ -101,9 +101,9 @@ export default async function ApplicationPage({
       <AuthenticityCard
         applicant={{
           id: application.id,
-          applicantName: application.applicantName,
-          income: Number(application.income),
-          hasPermanentContract: application.hasPermanentContract,
+          applicantName: application.displayName,
+          income: Number(application.netIncomeMonthly),
+          hasPermanentContract: application.contractType === 'permanent',
         }}
       />
 
@@ -125,22 +125,19 @@ export default async function ApplicationPage({
         <CardHeader>
           <CardTitle>Application</CardTitle>
           <CardDescription>
-            {formatEuro(application.income)} net / month · household{" "}
-            {application.householdSize} · rent {formatEuro(listing.rentAmount)} ·{" "}
-            {listing.rooms} rooms
+            {formatEuro(application.netIncomeMonthly)} net / month · household{" "}
+            {application.householdSize} · rent {formatEuro(listing.rentAmount)}{" "}
+            · {listing.rooms} rooms
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 pt-0">
           <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
-            <Fact label="Permanent contract" value={application.hasPermanentContract} />
+            <Fact label="Contract" value={application.contractType} />
             <Fact label="Schufa" value={application.hasSchufa} />
-            <Fact
-              label="Mietschuldenfreiheit"
-              value={application.hasMietschuldenfrei}
-            />
+            <Fact label="Arrears Letter" value={application.hasArrearsLetter} />
           </dl>
           <p className="whitespace-pre-wrap text-sm leading-6">
-            {application.rawMessage}
+            {application.messagePreview}
           </p>
         </CardContent>
       </Card>
@@ -170,11 +167,11 @@ export default async function ApplicationPage({
   );
 }
 
-function Fact({ label, value }: { label: string; value: boolean }) {
+function Fact({ label, value }: { label: string; value: boolean | string | null }) {
   return (
     <div>
       <dt className="text-zinc-500">{label}</dt>
-      <dd>{value ? "Yes" : "No"}</dd>
+      <dd>{typeof value === "boolean" ? (value ? "Yes" : "No") : (value ?? "N/A")}</dd>
     </div>
   );
 }
@@ -187,7 +184,7 @@ async function loadApplication(id: string) {
       include: { listing: true },
     });
 
-    if (!application) return { missing: true as const, error: null, row: null };
+    if (!application || !application.listing) return { missing: true as const, error: null, row: null };
     return {
       missing: false as const,
       error: null,
