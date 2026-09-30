@@ -133,9 +133,6 @@ export function InboxPage() {
               <Link className="btn box-btn" to="/import">
                 {t('inbox.getApplicants')}
               </Link>
-              <button type="button" className="btn box-btn" onClick={loadDemoBoard}>
-                {t('inbox.reloadDemo')}
-              </button>
             </div>
           </header>
 
