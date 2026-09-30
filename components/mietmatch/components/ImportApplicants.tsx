@@ -1,23 +1,11 @@
 'use client'
 
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useId, useRef, useState, type FormEvent } from 'react'
 import { Link } from '@/components/mietmatch/nav'
-import { SAMPLE_APPLICANTS } from '../data/applicants'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
-import {
-  buildDemoCsv,
-  CSV_TEMPLATE,
-  parseApplicantCsv,
-} from '../lib/csv'
+import { CSV_TEMPLATE, parseApplicantCsv } from '../lib/csv'
 import type { MailboxProvider } from '../types'
-
-const SCAN_STEPS_KEYS = [
-  'import.scan.1',
-  'import.scan.2',
-  'import.scan.3',
-  'import.scan.4',
-] as const
 
 export function ImportApplicants() {
   const { user, mailbox, connectMailbox, disconnectMailbox, importApplicants } = useSession()
@@ -28,32 +16,6 @@ export function ImportApplicants() {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [consentFor, setConsentFor] = useState<MailboxProvider | null>(null)
-  const [scanning, setScanning] = useState(false)
-  const [scanStep, setScanStep] = useState(0)
-
-  useEffect(() => {
-    if (!scanning) return
-    if (scanStep >= SCAN_STEPS_KEYS.length - 1) {
-      const timer = window.setTimeout(() => {
-        const drafts = SAMPLE_APPLICANTS.map((item) => ({
-          ...item,
-          messagePreview: '[Extracted from application email — free text is not used for scoring.]',
-        }))
-        const count = importApplicants(drafts, mode)
-        setScanning(false)
-        setScanStep(0)
-        setMessage(
-          t('import.scan.done', {
-            count,
-            provider: mailbox?.provider === 'outlook' ? 'Outlook' : 'Gmail',
-          }),
-        )
-      }, 700)
-      return () => window.clearTimeout(timer)
-    }
-    const timer = window.setTimeout(() => setScanStep((step) => step + 1), 650)
-    return () => window.clearTimeout(timer)
-  }, [scanning, scanStep, importApplicants, mode, mailbox?.provider, t])
 
   function applyCsv(text: string) {
     setError(null)
@@ -89,8 +51,7 @@ export function ImportApplicants() {
   function startInboxScan() {
     setError(null)
     setMessage(null)
-    setScanStep(0)
-    setScanning(true)
+    setError(t('import.scan.unavailable'))
   }
 
   function download(filename: string, content: string) {
@@ -146,13 +107,8 @@ export function ImportApplicants() {
                 <strong>{mailbox.provider === 'gmail' ? 'Gmail' : 'Outlook'}</strong> · {mailbox.email}
               </p>
               <div className="import-actions">
-                <button
-                  type="button"
-                  className="btn slim primary"
-                  onClick={startInboxScan}
-                  disabled={scanning}
-                >
-                  {scanning ? t('import.email.reading') : t('import.email.read')}
+                <button type="button" className="btn slim primary" onClick={startInboxScan}>
+                  {t('import.email.read')}
                 </button>
                 <button
                   type="button"
@@ -176,14 +132,6 @@ export function ImportApplicants() {
               </button>
             </div>
           )}
-          {scanning ? (
-            <div className="scan-progress" aria-live="polite">
-              <p>{t(SCAN_STEPS_KEYS[scanStep])}</p>
-              <div className="bar">
-                <span style={{ width: `${((scanStep + 1) / SCAN_STEPS_KEYS.length) * 100}%` }} />
-              </div>
-            </div>
-          ) : null}
         </section>
 
         <section className="import-panel" id="csv-import" aria-label={t('import.csv.title')}>
@@ -212,16 +160,6 @@ export function ImportApplicants() {
               onClick={() => download('besichtigo-applicants-template.csv', CSV_TEMPLATE)}
             >
               {t('import.csv.template')}
-            </button>
-            <button type="button" className="btn slim" onClick={() => applyCsv(buildDemoCsv(100))}>
-              {t('import.csv.demo')}
-            </button>
-            <button
-              type="button"
-              className="btn slim ghost"
-              onClick={() => download('besichtigo-100-applicants.csv', buildDemoCsv(100))}
-            >
-              {t('import.csv.downloadDemo')}
             </button>
           </div>
           <CsvPaste

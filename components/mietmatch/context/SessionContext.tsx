@@ -1,11 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { SAMPLE_APPLICANTS } from '../data/applicants'
-import { LISTINGS } from '../data/listings'
 import { defaultRequirements, sanitizeRequirements } from '../data/requirements'
 import { authenticate, register } from '../lib/auth'
-import { buildDemoCsv, parseApplicantCsv } from '../lib/csv'
 import { authClient } from '@/lib/auth-client'
 import {
   applicantsKey,
@@ -53,24 +50,16 @@ function anonymizeApplicant<T extends Applicant | Omit<Applicant, 'id' | 'applie
 /** Restore real names when older sessions stored "Applicant ABCD" codes. */
 function restoreDisplayName<T extends Applicant>(item: T): T {
   if (!isCodedAlias(item.displayName)) return item
-  const seed = SAMPLE_APPLICANTS.find(
-    (sample) =>
-      sample.fingerprint === item.fingerprint ||
-      (item.email &&
-        !item.email.includes('•') &&
-        sample.email.toLowerCase() === item.email.toLowerCase()),
-  )
-  const next = resolveDisplayName(
-    item.displayName,
-    item.fingerprint || item.id,
-    seed?.displayName,
-  )
+  const next = resolveDisplayName(item.displayName, item.fingerprint || item.id)
   return { ...item, displayName: next }
 }
 
 function loadFlat(userId: string) {
   const raw = readJson<LandlordFlat | null>(flatKey(userId), null)
-  return raw && typeof raw.id === 'string' ? raw : null
+  if (!raw || typeof raw.id !== 'string') return null
+  // Drop old demo listings so landlords start from real data.
+  if (raw.id.startsWith('demo-flat-')) return null
+  return raw
 }
 
 function loadApplicants(userId: string) {
@@ -78,6 +67,7 @@ function loadApplicants(userId: string) {
   if (!Array.isArray(raw)) return []
   return raw
     .filter((item) => item && typeof item.id === 'string')
+    .filter((item) => !item.id.startsWith('demo-') && !item.id.startsWith('sample-'))
     .map((item) => anonymizeApplicant(restoreDisplayName(item)))
 }
 
@@ -334,67 +324,6 @@ export function SessionProvider({
     [],
   )
 
-  const loadSampleApplicants = useCallback(() => {
-    const stamped = SAMPLE_APPLICANTS.map((item, index) => {
-      const id = `sample-${index}-${Date.now().toString(36)}`
-      return anonymizeApplicant({
-        ...item,
-        id,
-        appliedAt: new Date(Date.now() - index * 36e5).toISOString(),
-      })
-    })
-    setState((current) => ({
-      ...current,
-      applicants: stamped,
-      invitedIds: [],
-      invitations: [],
-      marks: {},
-    }))
-  }, [])
-
-  const loadDemoBoard = useCallback(() => {
-    const sample = LISTINGS[0]
-    const flat: LandlordFlat = {
-      id: `demo-flat-${Date.now().toString(36)}`,
-      address: sample.address,
-      district: sample.district,
-      bezirk: sample.bezirk,
-      lat: sample.lat,
-      lng: sample.lng,
-      rentWarm: sample.rentWarm,
-      rooms: sample.rooms,
-      sqm: sample.sqm,
-      addedAt: new Date().toISOString(),
-      berlin: sample.berlin,
-      sourceNote: 'Demo listing for trying the landlord shortlist.',
-    }
-    const parsed = parseApplicantCsv(buildDemoCsv(100))
-    const stamped = parsed.drafts.map((item, index) => {
-      const id = `demo-${index}-${Date.now().toString(36)}`
-      return anonymizeApplicant({
-        ...item,
-        id,
-        appliedAt: new Date(Date.now() - index * 60_000).toISOString(),
-        messagePreview: '[Demo applicant — free text is not used for scoring.]',
-      })
-    })
-    setState((current) => ({
-      ...current,
-      flat,
-      applicants: stamped,
-      invitedIds: [],
-      invitations: [],
-      marks: {},
-      mailbox: current.user
-        ? {
-            provider: 'gmail',
-            email: current.user.email,
-            connectedAt: new Date().toISOString(),
-          }
-        : current.mailbox,
-    }))
-  }, [])
-
   const connectMailbox = useCallback((provider: MailboxProvider) => {
     setState((current) => {
       if (!current.user) return current
@@ -528,8 +457,6 @@ export function SessionProvider({
       addApplicant,
       importApplicants,
       removeApplicant,
-      loadSampleApplicants,
-      loadDemoBoard,
       connectMailbox,
       disconnectMailbox,
       markInvited,
@@ -555,8 +482,6 @@ export function SessionProvider({
       addApplicant,
       importApplicants,
       removeApplicant,
-      loadSampleApplicants,
-      loadDemoBoard,
       connectMailbox,
       disconnectMailbox,
       markInvited,

@@ -3,8 +3,9 @@
 import React, { useMemo, useState } from "react";
 import type { AuthenticityReport, OverallStatus } from "@/lib/authenticity/types";
 import { evaluateAuthenticity } from "@/lib/authenticity/engine";
-import { combinedMatchPercent } from "@/lib/authenticity/score";
 import { InspectionModal } from "./inspection-modal";
+
+const STRONG_MATCH_RATE = 70;
 
 interface AuthenticityBadgeProps {
   applicant: {
@@ -13,7 +14,7 @@ interface AuthenticityBadgeProps {
     income: number | string;
     hasPermanentContract?: boolean;
   };
-  /** When set with score/compact, blends match % with trust. */
+  /** Criteria match % — shown as-is for score/compact (not blended with trust). */
   matchRate?: number;
   initialReport?: AuthenticityReport;
   /** `score` = list %, `compact` = detail %, `verify` = security badge in details. */
@@ -32,6 +33,10 @@ function statusLabel(status: OverallStatus) {
   if (status === "verified") return "Verified";
   if (status === "warning") return "Warning";
   return "High risk";
+}
+
+function matchToneClass(rate: number) {
+  return rate >= STRONG_MATCH_RATE ? "trust-ok" : "trust-bad";
 }
 
 export function AuthenticityBadge({
@@ -64,17 +69,20 @@ export function AuthenticityBadge({
   const isVerify = variant === "verify";
   const percent =
     !isVerify && typeof matchRate === "number"
-      ? combinedMatchPercent(matchRate, report.trustIndex)
+      ? Math.round(matchRate)
       : report.trustIndex;
 
-  const tone = statusTone(report.overallStatus);
+  const tone =
+    !isVerify && typeof matchRate === "number"
+      ? matchToneClass(percent)
+      : statusTone(report.overallStatus);
   const verifyLabel = statusLabel(report.overallStatus);
   const label =
     caption ??
     (isVerify
       ? verifyLabel
       : typeof matchRate === "number"
-        ? percent >= 70
+        ? percent >= STRONG_MATCH_RATE
           ? "Match"
           : "Weak"
         : "Trust");
@@ -101,12 +109,12 @@ export function AuthenticityBadge({
         title={
           isVerify
             ? `Document trust ${report.trustIndex}/100 (${verifyLabel}) — inspect`
-            : `Score ${percent}% · document trust ${report.trustIndex}/100 — inspect`
+            : `Match ${percent}% · document trust ${report.trustIndex}/100 — inspect`
         }
         aria-label={
           isVerify
             ? `Document authenticity ${report.trustIndex} ${verifyLabel}. Open details.`
-            : `Score ${percent} percent. Open authenticity details.`
+            : `Match ${percent} percent. Open authenticity details.`
         }
       >
         {isVerify ? (

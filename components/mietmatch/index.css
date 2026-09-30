@@ -219,9 +219,9 @@ a { color: var(--clay-dark); }
   overflow: hidden;
   color: #ffffff;
   background:
-    linear-gradient(160deg, rgba(8, 8, 32, 0.55), rgba(8, 8, 32, 0.78)),
+    linear-gradient(160deg, rgba(28, 48, 78, 0.42), rgba(22, 38, 68, 0.62)),
     url('/waves.svg') center / cover no-repeat,
-    var(--ds-navy);
+    linear-gradient(165deg, #3d5f82 0%, #2f4d6e 48%, #274260 100%);
 }
 .auth-story::after {
   content: '';
@@ -236,9 +236,9 @@ a { color: var(--clay-dark); }
   margin: 0 0 18px;
   width: fit-content;
   padding: 6px 12px;
-  border: 1px solid rgba(168, 220, 240, 0.28);
+  border: 1px solid rgba(168, 220, 240, 0.32);
   border-radius: 999px;
-  background: rgba(16, 22, 48, 0.55);
+  background: rgba(36, 58, 88, 0.45);
   color: var(--lime);
   font-size: 12px;
   font-weight: 700;
