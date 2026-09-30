@@ -12,7 +12,6 @@ export function ImportPage() {
   return (
     <div className="import-page">
       <header className="page-head">
-        <p className="kicker">{t('import.kicker')}</p>
         <h1>{t('import.title')}</h1>
         <p className="lede">{t('import.lede')}</p>
       </header>

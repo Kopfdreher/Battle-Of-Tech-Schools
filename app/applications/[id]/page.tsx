@@ -76,7 +76,7 @@ export default async function ApplicationPage({
         <p className="text-sm text-zinc-500">{listing.address}</p>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">
-            {application.applicantName}
+            <span className="name-blur">{application.applicantName}</span>
           </h1>
           <AuthenticityBadge
             applicant={{

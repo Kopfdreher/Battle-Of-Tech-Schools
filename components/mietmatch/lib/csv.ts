@@ -1,6 +1,6 @@
 import type { Applicant, ContractType, EmploymentType } from '../types'
 import { applicantFingerprint } from '../data/applicants'
-import { applicantCode } from './anonymize'
+import { anonymizeApplicantRecord } from './anonymize'
 
 export type ApplicantDraft = Omit<Applicant, 'id' | 'appliedAt'>
 
@@ -103,8 +103,8 @@ function rowToDraft(cells: string[], index: ReturnType<typeof mapHeaders>): Appl
   const name = displayName || safeEmail.split('@')[0]
   const fingerprint = applicantFingerprint(safeEmail, name)
 
-  return {
-    displayName: `Applicant ${applicantCode(fingerprint)}`,
+  return anonymizeApplicantRecord({
+    displayName: name,
     email: safeEmail,
     netIncomeMonthly: numberOr(get('netIncomeMonthly'), 0),
     householdSize: Math.max(1, Math.round(numberOr(get('householdSize'), 1))),
@@ -117,7 +117,7 @@ function rowToDraft(cells: string[], index: ReturnType<typeof mapHeaders>): Appl
     smokes: truthy(get('smokes')),
     messagePreview: '[Imported from CSV — free text is not used for scoring.]',
     fingerprint,
-  }
+  })
 }
 
 /** Parse a CSV of applicant rows. First line must be headers. */
@@ -170,21 +170,23 @@ export function parseEmailList(text: string): { drafts: ApplicantDraft[]; errors
     }
     const localPart = email.split('@')[0]?.replace(/[._]/g, ' ') || email
     const fingerprint = applicantFingerprint(email, localPart)
-    drafts.push({
-      displayName: `Applicant ${applicantCode(fingerprint)}`,
-      email,
-      netIncomeMonthly: 0,
-      householdSize: 1,
-      contractType: 'other',
-      employmentType: 'other',
-      hasArrearsLetter: false,
-      hasIncomeProof: false,
-      hasEmploymentProof: false,
-      hasSchufa: false,
-      smokes: false,
-      messagePreview: '[From email list — add structured CSV fields for a fair score.]',
-      fingerprint,
-    })
+    drafts.push(
+      anonymizeApplicantRecord({
+        displayName: localPart,
+        email,
+        netIncomeMonthly: 0,
+        householdSize: 1,
+        contractType: 'other',
+        employmentType: 'other',
+        hasArrearsLetter: false,
+        hasIncomeProof: false,
+        hasEmploymentProof: false,
+        hasSchufa: false,
+        smokes: false,
+        messagePreview: '[From email list — add structured CSV fields for a fair score.]',
+        fingerprint,
+      }),
+    )
   }
   return { drafts, errors }
 }

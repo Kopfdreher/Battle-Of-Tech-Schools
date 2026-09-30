@@ -4,6 +4,7 @@ import { Fraunces, Geist, Outfit } from "next/font/google";
 import { MietProviders } from "@/components/mietmatch/providers";
 import { loadBoard } from "@/lib/board";
 import "./globals.css";
+import "../components/mietmatch/design-tokens.css";
 import "../components/mietmatch/index.css";
 
 const geistSans = Geist({

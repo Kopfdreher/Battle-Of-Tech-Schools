@@ -140,7 +140,7 @@ export default async function HomePage({
                             href={`/applications/${application.id}`}
                             className="font-medium underline-offset-4 hover:underline"
                           >
-                            {application.applicantName}
+                            <span className="name-blur">{application.applicantName}</span>
                           </Link>
                           <p className="text-xs text-zinc-500">
                             {formatEuro(application.income)} / month ·{" "}
