@@ -7,7 +7,7 @@ import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
 import { CRITERIA_SUGGESTIONS, DEFAULT_SELECTED } from '../data/requirements'
-import { buildDemoCsv, CSV_TEMPLATE, parseApplicantCsv } from '../lib/csv'
+import { CSV_TEMPLATE, parseApplicantCsv } from '../lib/csv'
 import type { CriterionId, MailboxProvider } from '../types'
 
 type Step = 'fit' | 'email' | 'csv'
@@ -117,16 +117,6 @@ export function OnboardingPage() {
     const link = document.createElement('a')
     link.href = url
     link.download = 'besichtigo-applicants.csv'
-    link.click()
-    URL.revokeObjectURL(url)
-  }
-
-  function downloadSample() {
-    const blob = new Blob([buildDemoCsv()], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = 'besichtigo-sample-applicants.csv'
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -296,9 +286,6 @@ export function OnboardingPage() {
             <div className="wizard-file-row">
               <button type="button" className="btn" onClick={downloadTemplate}>
                 {t('onboarding.csv.template')}
-              </button>
-              <button type="button" className="btn" onClick={downloadSample}>
-                {t('onboarding.csv.sample')}
               </button>
             </div>
             {error ? (

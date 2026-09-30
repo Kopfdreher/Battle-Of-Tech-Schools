@@ -3,11 +3,10 @@
 import { Link, useNavigate, useParams } from '@/components/mietmatch/nav'
 import { AuthenticityBadge } from '@/components/authenticity/authenticity-badge'
 import { evaluateAuthenticity } from '@/lib/authenticity/engine'
-import { combinedMatchPercent } from '@/lib/authenticity/score'
 import { BlurredName } from '../components/BlurredName'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
-import { evaluateApplicant, STRONG_MATCH_RATE } from '../lib/match'
+import { evaluateApplicant, matchTone } from '../lib/match'
 
 export function ListingPage() {
   const { id } = useParams({ from: '/_app/applicants/$id' })
@@ -45,8 +44,7 @@ export function ListingPage() {
     income: applicant.netIncomeMonthly,
     hasPermanentContract: applicant.contractType === 'permanent',
   })
-  const displayRate = combinedMatchPercent(verdict.matchRate, report.trustIndex)
-  const tone = displayRate >= STRONG_MATCH_RATE ? 'good' : 'bad'
+  const tone = matchTone(verdict)
   const mark = marks[applicant.id] ?? null
   const peopleLabel =
     applicant.householdSize === 1

@@ -4,10 +4,9 @@ import { useMemo } from 'react'
 import { Link } from '@/components/mietmatch/nav'
 import { AuthenticityBadge } from '@/components/authenticity/authenticity-badge'
 import { evaluateAuthenticity } from '@/lib/authenticity/engine'
-import { combinedMatchPercent } from '@/lib/authenticity/score'
 import { useLocale } from '../context/LocaleContext'
 import { useSession, type ApplicantMark } from '../context/session'
-import { STRONG_MATCH_RATE, type Verdict } from '../lib/match'
+import { matchTone, type Verdict } from '../lib/match'
 import type { Applicant } from '../types'
 import { BlurredName } from './BlurredName'
 
@@ -53,8 +52,7 @@ export function ApplicantRow({
       }),
     [applicant.id, applicant.displayName, applicant.netIncomeMonthly, applicant.contractType],
   )
-  const displayRate = combinedMatchPercent(verdict.matchRate, report.trustIndex)
-  const tone = displayRate >= STRONG_MATCH_RATE ? 'good' : 'bad'
+  const tone = matchTone(verdict)
   const mark = marks[applicant.id] ?? null
 
   function toggleMark(next: ApplicantMark) {
@@ -171,7 +169,7 @@ export function ApplicantRow({
             <div className="match-panel-head">
               <p className="kicker">{matchLabel}</p>
               <p className="match-rate-line">
-                {t('row.fit')} <strong>{displayRate}%</strong>
+                {t('row.fit')} <strong>{Math.round(verdict.matchRate)}%</strong>
               </p>
             </div>
             <ul className="match-list">
