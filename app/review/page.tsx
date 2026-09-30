@@ -122,7 +122,7 @@ export default async function HomePage({
                 <TableBody>
                   {data.applications.map((application) => {
                     const money = affordability(
-                      Number(application.income),
+                      Number(application.netIncomeMonthly),
                       Number(data.selected!.rentAmount),
                     );
                     const contract = contractSecurity(application);
@@ -138,10 +138,10 @@ export default async function HomePage({
                             href={`/applications/${application.id}`}
                             className="font-medium underline-offset-4 hover:underline"
                           >
-                            {application.applicantName}
+                            {application.displayName}
                           </Link>
                           <p className="text-xs text-zinc-500">
-                            {formatEuro(application.income)} / month ·{" "}
+                            {formatEuro(application.netIncomeMonthly)} / month ·{" "}
                             {application.householdSize} people
                           </p>
                         </TableCell>
@@ -198,7 +198,7 @@ async function loadDashboard(listingId?: string): Promise<{
       null;
     const applicationRows = selected
       ? await db.application.findMany({
-          where: { listingId: selected.id },
+          where: { apartmentId: selected.id },
           orderBy: { createdAt: "desc" },
         })
       : [];

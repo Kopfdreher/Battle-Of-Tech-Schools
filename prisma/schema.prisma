@@ -22,21 +22,30 @@ model Listing {
 
 model Application {
   id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  listingId             String   @map("listing_id") @db.Uuid
-  applicantName         String   @map("applicant_name")
-  income                Decimal  @db.Decimal(10, 2)
-  hasPermanentContract  Boolean  @map("has_permanent_contract")
+  apartmentId           String?  @map("_apartment_id") @db.Uuid
+  displayName           String   @map("display_name")
+  email                 String?
+  netIncomeMonthly      Decimal  @map("net_income_monthly") @db.Decimal(10, 2)
+  contractType          String?  @map("contract_type")
+  employmentType        String?  @map("employment_type")
   householdSize         Int      @map("household_size")
-  hasMietschuldenfrei   Boolean  @map("has_mietschuldenfrei")
+  hasArrearsLetter      Boolean  @map("has_arrears_letter")
+  hasIncomeProof        Boolean? @map("has_income_proof")
+  hasEmploymentProof    Boolean? @map("has_employment_proof")
   hasSchufa             Boolean  @map("has_schufa")
-  rawMessage            String   @map("raw_message")
+  smokes                Boolean?
+  messagePreview        String   @map("message_preview")
   score                 Decimal? @db.Decimal(5, 2)
   riskFlags             Json     @default("[]") @map("risk_flags")
   status                String   @default("pending")
+  source                String?  @map("_source")
+  fingerprint           String?
+  appliedAt             DateTime? @map("applied_at") @db.Timestamptz(6)
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  listing               Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
-  @@index([listingId])
+  listing               Listing?  @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+
+  @@index([apartmentId])
   @@map("applications")
 }
 
