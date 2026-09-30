@@ -1,0 +1,51 @@
+name,email,apartment_id,income,employment,household_size,is_smoker,employment_contract,message
+Anna Müller,anna.mueller01@example.com,APT-1001,3200,Full-time Software Engineer,2,no,unbefristet,We are looking for a quiet two-room apartment. I work remotely several days a week and value a peaceful bedroom.
+Lukas Schneider,lukas.schneider02@example.com,APT-1001,4100,Full-time Product Manager,2,no,unbefristet,"Interested in the apartment, especially because the listing mentions a quiet courtyard."
+Sofia Ivanova,sofia.ivanova03@example.com,APT-1001,2700,Full-time Graphic Designer,1,no,unbefristet,I am especially interested in a quiet apartment with good natural light and a separate bedroom.
+Jonas Weber,jonas.weber04@example.com,APT-1001,5200,Full-time Lawyer,3,no,unbefristet,We are a small family and would prefer bedrooms away from the main street.
+Emma Fischer,emma.fischer05@example.com,APT-1001,2950,Full-time Teacher,2,yes,unbefristet,The location looks convenient for work. I would like to know more about the noise situation.
+Daniel Hoffmann,daniel.hoffmann06@example.com,APT-1001,3600,Full-time Data Analyst,2,no,unbefristet,I am sensitive to traffic noise and would prefer a bedroom facing an inner courtyard.
+Mia Wagner,mia.wagner07@example.com,APT-1001,2300,Full-time Nurse,1,no,unbefristet,Looking for a quiet one-bedroom apartment close to public transport.
+Felix Becker,felix.becker08@example.com,APT-1001,6500,Full-time Architect,2,no,permanent,We like the floor plan and would appreciate a calm sleeping area.
+Clara Neumann,clara.neumann09@example.com,APT-1001,3400,Full-time Researcher,2,no,unbefristet,The courtyard-facing bedroom mentioned in the description sounds ideal.
+Paul Richter,paul.richter10@example.com,APT-1001,3100,Full-time IT Consultant,2,no,unbefristet,I work from home and need a quiet room for video calls as well as sleeping.
+Lea Klein,lea.klein11@example.com,APT-1001,2600,Full-time Physiotherapist,1,no,unbefristet,I am interested in a quiet apartment and would be happy to attend a viewing.
+Maximilian Wolf,maximilian.wolf12@example.com,APT-1001,4500,Full-time Financial Analyst,2,yes,unbefristet,The apartment appears suitable for us. Please let me know whether the bedroom is street-facing.
+Nora Hartmann,nora.hartmann13@example.com,APT-1001,3800,Full-time UX Designer,2,no,unbefristet,A quiet courtyard would be a major advantage because I often work from home.
+Tim Krüger,tim.krueger14@example.com,APT-1001,2900,Full-time Electrician,2,no,unbefristet,Interested in the apartment. We prefer a separate bedroom and low evening noise.
+Elena Petrova,elena.petrova15@example.com,APT-1001,3350,Full-time Marketing Specialist,2,no,unbefristet,I am particularly interested in the claim that the apartment is in a quiet courtyard location.
+David Bauer,david.bauer16@example.com,APT-1001,5600,Full-time Software Architect,4,no,unbefristet,We are a family of four seeking a spacious apartment with quiet bedrooms.
+Amelie König,amelie.koenig17@example.com,APT-1001,2750,Full-time Accountant,1,no,unbefristet,The apartment looks good. Could you confirm whether the sleeping area is away from traffic?
+Sebastian Braun,sebastian.braun18@example.com,APT-1001,3900,Full-time Civil Engineer,2,no,unbefristet,We are interested in the viewing. A quiet bedroom is important to us.
+Julia Zimmermann,julia.zimmermann19@example.com,APT-1001,3050,Full-time Pharmacist,2,no,unbefristet,I like the apartment and especially the separate bedroom. Please share any information about street noise.
+Moritz Schulz,moritz.schulz20@example.com,APT-1001,4200,Full-time Consultant,2,no,befristet,We need an extra room for working from home and prefer a quiet courtyard-facing bedroom.
+Hannah Lehmann,hannah.lehmann21@example.com,APT-1001,2500,Full-time Social Worker,1,yes,befristet,I am looking for a calm home and would like to understand the surrounding noise level.
+Alexander Maier,alexander.maier22@example.com,APT-1001,4700,Full-time Engineer,2,no,befristet,The location works well for us. Quiet rooms are more important than a balcony.
+Sophia Krause,sophia.krause23@example.com,APT-1001,3300,Full-time Editor,2,no,befristet,I am interested because the listing says 'ruhige Hoflage'. Could I arrange a viewing?
+Christian Meier,christian.meier24@example.com,APT-1001,3600,Full-time Sales Manager,3,no,befristet,We are looking for three rooms and would prefer the bedrooms on the quiet side of the building.
+Laura Schmitt,laura.schmitt25@example.com,APT-1001,2850,Full-time Dentist Assistant,2,no,befristet,I value a quiet bedroom because I have early work shifts.
+Nils Berger,nils.berger26@example.com,APT-1001,4400,Full-time Backend Developer,2,no,befristet,"I work from home most days, so a quiet apartment is a key requirement."
+Maja Peters,maja.peters27@example.com,APT-1001,2550,Full-time Kindergarten Teacher,2,no,befristet,A separate bedroom away from the road would be ideal for us.
+Leon Sommer,leon.sommer28@example.com,APT-1001,3000,Full-time Journalist,1,no,befristet,Interested in the apartment and the viewing appointment.
+Eva Jansen,eva.jansen29@example.com,APT-1001,3700,Full-time Biologist,2,no,befristet,We are looking for a peaceful home. The inner courtyard description caught my attention.
+Philipp Winter,philipp.winter30@example.com,APT-1001,3250,Full-time Sales Engineer,2,yes,befristet,I like the apartment's layout. Could you tell me whether the bedroom is exposed to traffic noise?
+Marie Vogel,marie.vogel31@example.com,APT-1001,4600,Full-time Project Manager,2,no,befristet,A quiet sleeping area is essential. I would also like to see the floor plan before the viewing.
+Tobias Franke,tobias.franke32@example.com,APT-1001,3500,Full-time Mechanical Engineer,3,no,befristet,We are interested in the three-room apartment and hope the bedrooms are not street-facing.
+Isabel Werner,isabel.werner33@example.com,APT-1001,2400,Full-time Translator,1,no,befristet,I would prefer a very quiet apartment because I often work late and sleep during the day.
+Henrik Seidel,henrik.seidel34@example.com,APT-1001,5000,Full-time Operations Manager,4,no,befristet,We are a family with two children. Quiet children's bedrooms are particularly important to us.
+Louisa Brandt,louisa.brandt35@example.com,APT-1001,3150,Full-time HR Specialist,2,no,befristet,The listing sounds promising. I am especially interested in the courtyard orientation.
+Jan Busch,jan.busch36@example.com,APT-1001,2800,Full-time Technician,2,no,befristet,Please let me know whether this is a through apartment and where the bedroom windows face.
+Katharina Scholz,katharina.scholz37@example.com,APT-1001,3950,Full-time Doctor,2,no,befristet,"Because of my work schedule, I need a quiet bedroom with minimal street noise."
+Robert Henning,robert.henning38@example.com,APT-1001,4300,Full-time Procurement Specialist,3,yes,befristet,We are interested in a three-room apartment with bedrooms facing the courtyard if possible.
+Alicia Roth,alicia.roth39@example.com,APT-1001,2650,Full-time Photographer,1,no,befristet,I am interested in the apartment and would like more details about the neighborhood noise.
+Stefan Buschmann,stefan.buschmann40@example.com,APT-1001,3750,Full-time Network Engineer,2,no,befristet,A quiet inner-courtyard bedroom would be a strong plus for me.
+Valentina Morozova,valentina.morozova41@example.com,APT-1001,2900,Full-time Content Manager,2,no,befristet,We are looking for a quiet home and would like to inspect the floor plan carefully.
+Georg Haas,georg.haas42@example.com,APT-1001,5100,Full-time Medical Researcher,3,no,befristet,The apartment looks suitable for our family. Please confirm the orientation of the children's room.
+Fiona Lorenz,fiona.lorenz43@example.com,APT-1001,3450,Full-time Interior Designer,2,no,befristet,I like the layout and would prefer the bedroom to face the courtyard.
+Marc Habner,marc.huebner44@example.com,APT-1001,3650,Full-time DevOps Engineer,2,no,befristet,I work remotely and would like a quiet bedroom and a separate office if possible.
+Sarah Kanig,sarah.koenig45@example.com,APT-1001,2250,Part-time Retail Manager,1,no,befristet,I am very interested and would appreciate a viewing appointment.
+Yaroslav Melnyk,yaroslav.melnyk46@example.com,APT-1001,3050,Full-time C++ Developer,2,no,befristet,A quiet bedroom is important because I spend a lot of time working from home.
+Meike Ganther,meike.guenther47@example.com,APT-1001,4000,Full-time HR Manager,3,no,befristet,We would like a calm apartment and ideally bedrooms away from the main road.
+Rafael Kanig,rafael.koenig48@example.com,APT-1001,3450,Full-time Restaurant Manager,2,yes,befristet,The apartment seems interesting. I would like to know whether the bedroom is facing the street.
+Olga Bondarenko,olga.bondarenko49@example.com,APT-1001,2750,Full-time QA Engineer,1,no,befristet,I am interested in the apartment because the listing mentions a quiet courtyard.
+Thomas Ebert,thomas.ebert50@example.com,APT-1001,4850,Full-time Business Analyst,3,no,befristet,We are looking for a three-room apartment with quiet bedrooms and would like to schedule a viewing.

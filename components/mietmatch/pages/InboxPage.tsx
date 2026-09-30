@@ -1,23 +1,63 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from '@/components/mietmatch/nav'
 import { ApplicantRow, type ListGroup } from '../components/ApplicantRow'
 import { CriteriaBoard } from '../components/CriteriaBoard'
 import { InvitePanel } from '../components/InvitePanel'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
+import { parseApplicantCsv } from '../lib/csv'
 import { compareApplicants, evaluateApplicant, matchTone } from '../lib/match'
 
 type MatchFilter = 'all' | 'strong' | 'weak' | 'duplicates'
 
 export function InboxPage() {
-  const { user, requirements, flat, applicants, marks, removeApplicant, loadDemoBoard } = useSession()
+  const { user, requirements, flat, applicants, marks, removeApplicant, loadDemoBoard, importApplicants } = useSession()
   const { t } = useLocale()
+  const fileRef = useRef<HTMLInputElement>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [listGroup, setListGroup] = useState<ListGroup>('all')
   const [filter, setFilter] = useState<MatchFilter>('all')
   const [minPercent, setMinPercent] = useState(0)
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+
+  async function applyCsv(text: string) {
+    const parsed = parseApplicantCsv(text)
+    if (parsed.drafts.length === 0) {
+      setUploadError(parsed.errors[0] ?? 'No applicants found in that CSV.')
+      return
+    }
+
+    try {
+      const resp = await fetch('/api/forward-csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/csv' },
+        body: text,
+      })
+      if (!resp.ok) {
+        const body = await resp.text()
+        setUploadError(`Upload failed: ${resp.status} ${resp.statusText} — ${body}`)
+      }
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'CSV upload failed.')
+    }
+
+    const count = importApplicants(parsed.drafts, 'replace')
+    setUploadMessage(`Imported ${count} applicant${count === 1 ? '' : 's'} from CSV.`)
+    setUploadError(null)
+  }
+
+  function onFile(file: File | null) {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      void applyCsv(String(reader.result ?? ''))
+    }
+    reader.onerror = () => setUploadError('Could not read that file.')
+    reader.readAsText(file)
+  }
 
   const ranked = useMemo(() => {
     if (!flat) return []
@@ -130,6 +170,19 @@ export function InboxPage() {
               </Link>
             </div>
             <div className="board-toolbar-actions">
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="sr-only"
+                onChange={(event) => {
+                  onFile(event.target.files?.[0] ?? null)
+                  event.target.value = ''
+                }}
+              />
+              <button type="button" className="btn box-btn" onClick={() => fileRef.current?.click()}>
+                Upload CSV
+              </button>
               <Link className="btn box-btn" to="/import">
                 {t('inbox.getApplicants')}
               </Link>
@@ -138,6 +191,9 @@ export function InboxPage() {
               </button>
             </div>
           </header>
+
+          {uploadMessage ? <p className="hint import-ok">{uploadMessage}</p> : null}
+          {uploadError ? <p className="error" role="alert">{uploadError}</p> : null}
 
           <div className="shortlist-grid">
             <CriteriaBoard />

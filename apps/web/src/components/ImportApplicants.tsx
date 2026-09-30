@@ -1,14 +1,9 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { SAMPLE_APPLICANTS } from '../data/applicants.ts'
 import { useSession } from '../context/session.ts'
-import {
-  buildDemoCsv,
-  CSV_TEMPLATE,
-  parseApplicantCsv,
-} from '../lib/csv.ts'
 import type { MailboxProvider } from '../types.ts'
 
-type Source = 'chooser' | 'email' | 'csv'
+type Source = 'chooser' | 'email'
 
 const SCAN_STEPS = [
   'Connecting to your inbox…',
@@ -19,8 +14,6 @@ const SCAN_STEPS = [
 
 export function ImportApplicants() {
   const { user, mailbox, connectMailbox, disconnectMailbox, importApplicants } = useSession()
-  const fileId = useId()
-  const fileRef = useRef<HTMLInputElement>(null)
   const [source, setSource] = useState<Source>(mailbox ? 'email' : 'chooser')
   const [mode, setMode] = useState<'replace' | 'append'>('replace')
   const [message, setMessage] = useState<string | null>(null)
@@ -50,73 +43,6 @@ export function ImportApplicants() {
     return () => window.clearTimeout(timer)
   }, [scanning, scanStep, importApplicants, mode, mailbox?.provider])
 
-  async function applyCsv(text: string) {
-    setError(null)
-    setMessage(null)
-
-    const required = [
-      'applicant_id',
-      'name',
-      'email',
-      'apartment_id',
-      'income',
-      'employment',
-      'household_size',
-      'requested_rooms_amount',
-      'is_smoker',
-      'message',
-    ]
-    const firstLine = String(text).split(/\r?\n/)[0] ?? ''
-    const headers = firstLine.split(',').map((h) => h.trim())
-    const missing = required.filter((r) => !headers.includes(r))
-    if (missing.length > 0) {
-      setError(
-        `CSV missing required header(s): ${missing.join(', ')}. Expected header row: ${required.join(',')}`,
-      )
-      return
-    }
-
-    try {
-      const resp = await fetch('/api/forward-csv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/csv' },
-        body: text,
-      })
-      if (!resp.ok) {
-        const body = await resp.text()
-        setError(`Upload failed: ${resp.status} ${resp.statusText} — ${body}`)
-      } else {
-        setMessage('Uploaded CSV to webhook successfully.')
-      }
-    } catch (err: any) {
-      setError(`Upload failed: ${err?.message ?? String(err)}`)
-    }
-
-    const parsed = parseApplicantCsv(text)
-    if (parsed.drafts.length === 0) {
-      setError(parsed.errors[0] ?? 'No applicants found in that CSV.')
-      return
-    }
-    const count = importApplicants(parsed.drafts, mode)
-    setMessage((prev) =>
-      prev
-        ? `${prev} Imported ${count} applicant${count === 1 ? '' : 's'} from CSV${
-            parsed.errors.length ? ` (${parsed.errors.length} skipped)` : ''
-          }.`
-        : `Imported ${count} applicant${count === 1 ? '' : 's'} from CSV${
-            parsed.errors.length ? ` (${parsed.errors.length} skipped)` : ''
-          }.`,
-    )
-  }
-
-  function onFile(file: File | null) {
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => applyCsv(String(reader.result ?? ''))
-    reader.onerror = () => setError('Could not read that file.')
-    reader.readAsText(file)
-  }
-
   function onConsentAllow() {
     if (!consentFor) return
     connectMailbox(consentFor)
@@ -131,34 +57,17 @@ export function ImportApplicants() {
     setScanning(true)
   }
 
-  function download(filename: string, content: string) {
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    link.click()
-    URL.revokeObjectURL(url)
-  }
-
   return (
     <section className="panel import-panel" aria-label="Get applicants">
       <p className="kicker">Get applicants</p>
       <h2>Bring applications into the shortlist</h2>
-      <p className="lede">
-        Connect an inbox and pull applicant emails, or upload a CSV of people who applied. Either way, we score each
-        person with a match %.
-      </p>
+      <p className="lede">Connect an inbox and pull applicant emails. We score each person with a match %.</p>
 
       {source === 'chooser' ? (
         <div className="intake-grid">
           <button type="button" className="intake-card" onClick={() => setSource('email')}>
             <strong>Connect email</strong>
             <span>Gmail or Outlook — read application messages and extract applicant data.</span>
-          </button>
-          <button type="button" className="intake-card" onClick={() => setSource('csv')}>
-            <strong>Upload CSV</strong>
-            <span>Import a spreadsheet with names, income, contract, documents, and more.</span>
           </button>
         </div>
       ) : null}
@@ -238,57 +147,6 @@ export function ImportApplicants() {
         </div>
       ) : null}
 
-      {source === 'csv' ? (
-        <div className="intake-detail">
-          <h3>Upload a CSV of applicants</h3>
-          <p className="hint">
-            Use your own export of people who applied, or download our template / 100-row demo file.
-          </p>
-          <input
-            ref={fileRef}
-            id={fileId}
-            className="sr-only"
-            type="file"
-            accept=".csv,text/csv"
-            onChange={(event) => {
-              onFile(event.target.files?.[0] ?? null)
-              event.target.value = ''
-            }}
-          />
-          <div className="import-actions">
-            <button type="button" className="btn primary" onClick={() => fileRef.current?.click()}>
-              Upload CSV file
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => download('mietmatch-applicants-template.csv', CSV_TEMPLATE)}
-            >
-              Download template
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => applyCsv(buildDemoCsv(100))}
-            >
-              Load 100 demo applicants
-            </button>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => download('mietmatch-100-applicants.csv', buildDemoCsv(100))}
-            >
-              Download 100-row demo
-            </button>
-          </div>
-          <CsvPaste onImport={applyCsv} />
-          <p className="footnote">
-            Columns: name, email, net_income, household_size, contract, employment, arrears_letter, income_proof,
-            employment_proof, schufa, smokes.
-          </p>
-        </div>
-      ) : null}
-
       {error ? (
         <p className="error" role="alert">
           {error}
@@ -322,34 +180,5 @@ export function ImportApplicants() {
         </div>
       ) : null}
     </section>
-  )
-}
-
-function CsvPaste({ onImport }: { onImport: (text: string) => void }) {
-  const [paste, setPaste] = useState('')
-
-  function onSubmit(event: FormEvent) {
-    event.preventDefault()
-    if (!paste.trim()) return
-    onImport(paste)
-    setPaste('')
-  }
-
-  return (
-    <form className="address-box" onSubmit={onSubmit}>
-      <div className="field">
-        <label htmlFor="csv-paste">Or paste CSV text</label>
-        <textarea
-          id="csv-paste"
-          rows={4}
-          value={paste}
-          onChange={(event) => setPaste(event.target.value)}
-          placeholder="name,email,net_income,household_size,contract,..."
-        />
-      </div>
-      <button className="btn" type="submit">
-        Import pasted CSV
-      </button>
-    </form>
   )
 }

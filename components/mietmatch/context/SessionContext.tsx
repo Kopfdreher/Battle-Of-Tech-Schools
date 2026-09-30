@@ -268,6 +268,10 @@ export function SessionProvider({
     }))
   }, [])
 
+  const clearApplicants = useCallback(() => {
+    setState((current) => ({ ...current, applicants: [], invitedIds: [], invitations: [], marks: {} }))
+  }, [])
+
   const addApplicant = useCallback((draft: Omit<Applicant, 'id' | 'appliedAt'>) => {
     const applicant: Applicant = {
       ...draft,
@@ -493,6 +497,7 @@ export function SessionProvider({
       addApplicant,
       importApplicants,
       removeApplicant,
+      clearApplicants,
       loadSampleApplicants,
       loadDemoBoard,
       connectMailbox,

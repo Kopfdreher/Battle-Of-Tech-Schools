@@ -19,6 +19,7 @@ export type SessionValue = {
   updateRequirements: (requirements: Requirements) => void
   setFlat: (draft: Omit<LandlordFlat, 'id' | 'addedAt'>) => LandlordFlat
   clearFlat: () => void
+  clearApplicants: () => void
   addApplicant: (draft: Omit<Applicant, 'id' | 'appliedAt'>) => Applicant
   importApplicants: (drafts: ApplicantDraft[], mode?: 'replace' | 'append') => number
   removeApplicant: (id: string) => void

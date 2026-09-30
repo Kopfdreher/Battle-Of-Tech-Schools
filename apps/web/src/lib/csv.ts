@@ -186,7 +186,7 @@ export function parseEmailList(text: string): { drafts: ApplicantDraft[]; errors
   return { drafts, errors }
 }
 
-export const CSV_TEMPLATE = `applicant_id,name,email,apartment_id,income,employment,household_size,requested_rooms_amount,is_smoker,message
+export const CSV_TEMPLATE = `applicant_id,name,email,apartment_id,income,employment,household_size,is_smoker,employment_contract,message
 app-1,Mara Ellison,mara.ellison@example.com,apt-101,4200,employed,2,2,no,
 app-2,Jonas Richter,jonas.richter@example.com,apt-102,3100,employed,1,1,no,
 app-3,Leila Hofmann,leila.hofmann@example.com,apt-103,2800,employed,2,1,no,

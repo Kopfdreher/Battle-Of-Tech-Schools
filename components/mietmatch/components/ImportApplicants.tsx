@@ -1,15 +1,10 @@
 'use client'
 
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from '@/components/mietmatch/nav'
 import { SAMPLE_APPLICANTS } from '../data/applicants'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
-import {
-  buildDemoCsv,
-  CSV_TEMPLATE,
-  parseApplicantCsv,
-} from '../lib/csv'
 import type { MailboxProvider } from '../types'
 
 const SCAN_STEPS_KEYS = [
@@ -20,10 +15,8 @@ const SCAN_STEPS_KEYS = [
 ] as const
 
 export function ImportApplicants() {
-  const { user, mailbox, connectMailbox, disconnectMailbox, importApplicants } = useSession()
+  const { user, mailbox, connectMailbox, disconnectMailbox, importApplicants, clearApplicants } = useSession()
   const { t } = useLocale()
-  const fileId = useId()
-  const fileRef = useRef<HTMLInputElement>(null)
   const [mode, setMode] = useState<'replace' | 'append'>('replace')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -55,70 +48,6 @@ export function ImportApplicants() {
     return () => window.clearTimeout(timer)
   }, [scanning, scanStep, importApplicants, mode, mailbox?.provider, t])
 
-  async function applyCsv(text: string) {
-    setError(null)
-    setMessage(null)
-
-    const required = [
-      'applicant_id',
-      'name',
-      'email',
-      'apartment_id',
-      'income',
-      'employment',
-      'household_size',
-      'requested_rooms_amount',
-      'is_smoker',
-      'message',
-    ]
-    const firstLine = String(text).split(/\r?\n/)[0] ?? ''
-    const headers = firstLine.split(',').map((h) => h.trim())
-    const missing = required.filter((r) => !headers.includes(r))
-    if (missing.length > 0) {
-      setError(
-        `CSV missing required header(s): ${missing.join(', ')}. Expected header row: ${required.join(',')}`,
-      )
-      return
-    }
-
-    try {
-      const resp = await fetch('/api/forward-csv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/csv' },
-        body: text,
-      })
-      if (!resp.ok) {
-        const body = await resp.text()
-        setError(`Upload failed: ${resp.status} ${resp.statusText} — ${body}`)
-      } else {
-        setMessage('Uploaded CSV to webhook successfully.')
-      }
-    } catch (err: any) {
-      setError(`Upload failed: ${err?.message ?? String(err)}`)
-    }
-
-    const parsed = parseApplicantCsv(text)
-    if (parsed.drafts.length === 0) {
-      setError(parsed.errors[0] ?? t('import.csv.error'))
-      return
-    }
-    const count = importApplicants(parsed.drafts, mode)
-    setMessage(
-      t('import.csv.imported', {
-        count,
-        skipped: parsed.errors.length,
-      }),
-    )
-  }
-
-  function onFile(file: File | null) {
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => applyCsv(String(reader.result ?? ''))
-    reader.onerror = () => setError(t('import.csv.readError'))
-    reader.readAsText(file)
-  }
-
   function onConsentAllow() {
     if (!consentFor) return
     connectMailbox(consentFor)
@@ -130,16 +59,6 @@ export function ImportApplicants() {
     setMessage(null)
     setScanStep(0)
     setScanning(true)
-  }
-
-  function download(filename: string, content: string) {
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    link.click()
-    URL.revokeObjectURL(url)
   }
 
   return (
@@ -183,12 +102,16 @@ export function ImportApplicants() {
               </button>
               <button
                 type="button"
-                className="btn ghost"
+                className="btn"
                 onClick={() => {
-                  disconnectMailbox()
-                  setMessage(t('settings.mailbox.revoked'))
+                  clearApplicants()
+                  setMessage('Cleared shortlist. You can upload a new CSV.')
+                  setError(null)
                 }}
               >
+                Clear shortlist
+              </button>
+              <button type="button" className="btn ghost" onClick={() => setConsentFor(null)}>
                 {t('import.email.disconnect')}
               </button>
             </div>
@@ -212,47 +135,6 @@ export function ImportApplicants() {
             </div>
           </div>
         ) : null}
-      </section>
-
-      <section className="panel import-panel" id="csv-import" aria-label={t('import.csv.title')}>
-        <p className="kicker">{t('import.csv.kicker')}</p>
-        <h2>{t('import.csv.title')}</h2>
-        <p className="lede">{t('import.csv.lede')}</p>
-        <input
-          ref={fileRef}
-          id={fileId}
-          className="sr-only"
-          type="file"
-          accept=".csv,text/csv"
-          onChange={(event) => {
-            onFile(event.target.files?.[0] ?? null)
-            event.target.value = ''
-          }}
-        />
-        <div className="import-actions">
-          <button type="button" className="btn primary" onClick={() => fileRef.current?.click()}>
-            {t('import.csv.upload')}
-          </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => download('mietmatch-applicants-template.csv', CSV_TEMPLATE)}
-          >
-            {t('import.csv.template')}
-          </button>
-          <button type="button" className="btn" onClick={() => applyCsv(buildDemoCsv(100))}>
-            {t('import.csv.demo')}
-          </button>
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={() => download('mietmatch-100-applicants.csv', buildDemoCsv(100))}
-          >
-            {t('import.csv.downloadDemo')}
-          </button>
-        </div>
-        <CsvPaste onImport={applyCsv} label={t('import.csv.paste')} submitLabel={t('import.csv.pasteSubmit')} />
-        <p className="footnote">{t('import.csv.columns')}</p>
       </section>
 
       {error ? (
@@ -297,39 +179,3 @@ function LinkSettings() {
   )
 }
 
-function CsvPaste({
-  onImport,
-  label,
-  submitLabel,
-}: {
-  onImport: (text: string) => void
-  label: string
-  submitLabel: string
-}) {
-  const [paste, setPaste] = useState('')
-
-  function onSubmit(event: FormEvent) {
-    event.preventDefault()
-    if (!paste.trim()) return
-    onImport(paste)
-    setPaste('')
-  }
-
-  return (
-    <form className="address-box" onSubmit={onSubmit}>
-      <div className="field">
-        <label htmlFor="csv-paste">{label}</label>
-        <textarea
-          id="csv-paste"
-          rows={4}
-          value={paste}
-          onChange={(event) => setPaste(event.target.value)}
-          placeholder="name,email,net_income,household_size,contract,..."
-        />
-      </div>
-      <button className="btn" type="submit">
-        {submitLabel}
-      </button>
-    </form>
-  )
-}
