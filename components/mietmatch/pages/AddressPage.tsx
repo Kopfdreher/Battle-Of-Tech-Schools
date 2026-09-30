@@ -88,36 +88,40 @@ export function AddressPage() {
         <p className="lede">{t('address.lede')}</p>
       </header>
 
-      <form className="panel address-box" onSubmit={onSubmit}>
-        <div className="field">
-          <label htmlFor="lookup-address">{t('address.label')}</label>
-          <textarea
-            id="lookup-address"
-            name="address"
-            rows={2}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder={t('address.placeholder')}
-          />
-        </div>
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <div className="address-actions">
-          <button className="btn slim primary" type="submit">
-            {t('address.lookup')}
-          </button>
-        </div>
-      </form>
+      <div className="address-body">
+        <form className="panel address-box" onSubmit={onSubmit}>
+          <div className="field">
+            <label htmlFor="lookup-address">{t('address.label')}</label>
+            <textarea
+              id="lookup-address"
+              name="address"
+              rows={2}
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder={t('address.placeholder')}
+            />
+          </div>
+          {error ? (
+            <p className="error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <div className="address-actions">
+            <button className="btn slim primary" type="submit">
+              {t('address.lookup')}
+            </button>
+          </div>
+        </form>
 
-      {result.kind === 'loading' ? <p className="address-status">{t('address.loading')}</p> : null}
-      {result.kind === 'missing' ? <p className="address-status bad">{t('address.missing')}</p> : null}
-      {result.kind === 'outside' ? (
-        <p className="address-status bad">{t('address.outside', { label: result.label })}</p>
-      ) : null}
-      {result.kind === 'ready' ? <FlatPreview draft={result.draft} onSave={onSave} /> : null}
+        {result.kind === 'loading' ? <p className="address-status">{t('address.loading')}</p> : null}
+        {result.kind === 'missing' ? (
+          <p className="address-status bad">{t('address.missing')}</p>
+        ) : null}
+        {result.kind === 'outside' ? (
+          <p className="address-status bad">{t('address.outside', { label: result.label })}</p>
+        ) : null}
+        {result.kind === 'ready' ? <FlatPreview draft={result.draft} onSave={onSave} /> : null}
+      </div>
     </div>
   )
 }

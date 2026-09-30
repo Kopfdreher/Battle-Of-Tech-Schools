@@ -13,6 +13,23 @@ import type { CriterionId, Requirements } from '../types'
 /** Criteria with no extra limit controls. */
 const NO_LIMIT_UI: CriterionId[] = ['employed', 'compactHousehold', 'fullEvidence', 'documents']
 
+/** Stable pair order so limit cards and switch cards sit side by side. */
+const TUNE_ORDER: CriterionId[] = [
+  'affordability',
+  'household',
+  'contract',
+  'arrearsLetter',
+  'smoking',
+  'schufa',
+]
+
+function orderedTunable(selected: CriterionId[]) {
+  const tunable = selected.filter((id) => !NO_LIMIT_UI.includes(id))
+  const ranked = TUNE_ORDER.filter((id) => tunable.includes(id))
+  const rest = tunable.filter((id) => !TUNE_ORDER.includes(id))
+  return [...ranked, ...rest]
+}
+
 function DragHandle() {
   return (
     <span className="drag-handle" aria-hidden="true">
@@ -28,7 +45,7 @@ export function RequirementsEditor() {
   const { t } = useLocale()
   const selected = requirements.selected
   const available = CRITERIA_SUGGESTIONS.filter((item) => !selected.includes(item.id))
-  const tunable = selected.filter((id) => !NO_LIMIT_UI.includes(id))
+  const tunable = orderedTunable(selected)
   const [draggingId, setDraggingId] = useState<CriterionId | null>(null)
   const [overId, setOverId] = useState<CriterionId | null>(null)
   const dragFrom = useRef<number | null>(null)
@@ -330,6 +347,10 @@ function SwitchCard({
           <span className="req-switch-knob" />
         </button>
       </div>
+      <div className="req-card-spacer" aria-hidden="true" />
+      <p className="hint req-card-hint-space" aria-hidden="true">
+        &nbsp;
+      </p>
     </article>
   )
 }
