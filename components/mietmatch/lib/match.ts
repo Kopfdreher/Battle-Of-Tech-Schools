@@ -270,17 +270,18 @@ export const STRONG_MATCH_RATE = 70
 
 export type MatchTone = 'good' | 'bad'
 
+/** Strong = criteria match % at or above the threshold (authenticity is separate). */
 export function matchTone(verdict: Pick<Verdict, 'matchRate'>): MatchTone {
   return verdict.matchRate >= STRONG_MATCH_RATE ? 'good' : 'bad'
 }
 
+/** Highest match % first; tie-break on the top-priority criterion. */
 export function compareApplicants(
   left: { verdict: Verdict },
   right: { verdict: Verdict },
 ) {
   const byRate = right.verdict.matchRate - left.verdict.matchRate
   if (byRate !== 0) return byRate
-  // Tie-break on the top-priority criterion when overall % matches.
   const leftTop = left.verdict.checks[0]?.percent ?? 0
   const rightTop = right.verdict.checks[0]?.percent ?? 0
   return rightTop - leftTop

@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
-import { ShieldCheck, AlertTriangle, AlertOctagon } from "lucide-react";
+import React, { useMemo, useState } from "react";
 import type { AuthenticityReport, OverallStatus } from "@/lib/authenticity/types";
 import { evaluateAuthenticity } from "@/lib/authenticity/engine";
 import { InspectionModal } from "./inspection-modal";
+
+const STRONG_MATCH_RATE = 70;
 
 interface AuthenticityBadgeProps {
   applicant: {
@@ -13,90 +14,120 @@ interface AuthenticityBadgeProps {
     income: number | string;
     hasPermanentContract?: boolean;
   };
+  /** Criteria match % — shown as-is for score/compact (not blended with trust). */
+  matchRate?: number;
   initialReport?: AuthenticityReport;
-  size?: "sm" | "md";
-  showIcon?: boolean;
+  /** `score` = list %, `compact` = detail %, `verify` = security badge in details. */
+  variant?: "score" | "compact" | "verify";
+  className?: string;
+  caption?: string;
+}
+
+function statusTone(status: OverallStatus) {
+  if (status === "verified") return "trust-ok";
+  if (status === "warning") return "trust-warn";
+  return "trust-bad";
+}
+
+function statusLabel(status: OverallStatus) {
+  if (status === "verified") return "Verified";
+  if (status === "warning") return "Warning";
+  return "High risk";
+}
+
+function matchToneClass(rate: number) {
+  return rate >= STRONG_MATCH_RATE ? "trust-ok" : "trust-bad";
 }
 
 export function AuthenticityBadge({
   applicant,
+  matchRate,
   initialReport,
-  size = "md",
-  showIcon = true,
+  variant = "score",
+  className = "",
+  caption,
 }: AuthenticityBadgeProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const report =
-    initialReport ??
-    evaluateAuthenticity({
-      id: applicant.id,
-      applicantName: applicant.applicantName,
-      income: applicant.income,
-      hasPermanentContract: applicant.hasPermanentContract,
-    });
+  const report = useMemo(
+    () =>
+      initialReport ??
+      evaluateAuthenticity({
+        id: applicant.id,
+        applicantName: applicant.applicantName,
+        income: applicant.income,
+        hasPermanentContract: applicant.hasPermanentContract,
+      }),
+    [
+      initialReport,
+      applicant.id,
+      applicant.applicantName,
+      applicant.income,
+      applicant.hasPermanentContract,
+    ],
+  );
 
-  const getStyle = (status: OverallStatus) => {
-    switch (status) {
-      case "verified":
-        return {
-          wrapper:
-            "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100/80 hover:border-emerald-300",
-          dot: "bg-emerald-500",
-          icon: ShieldCheck,
-          label: "Verified",
-        };
-      case "warning":
-        return {
-          wrapper:
-            "border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100/80 hover:border-amber-300",
-          dot: "bg-amber-500",
-          icon: AlertTriangle,
-          label: "Warning",
-        };
-      case "fail":
-        return {
-          wrapper:
-            "border-red-200 bg-red-50 text-red-900 hover:bg-red-100/80 hover:border-red-300",
-          dot: "bg-red-500",
-          icon: AlertOctagon,
-          label: "High Risk",
-        };
-    }
-  };
+  const isVerify = variant === "verify";
+  const percent =
+    !isVerify && typeof matchRate === "number"
+      ? Math.round(matchRate)
+      : report.trustIndex;
 
-  const style = getStyle(report.overallStatus);
-  const Icon = style.icon;
-
-  const isSmall = size === "sm";
+  const tone =
+    !isVerify && typeof matchRate === "number"
+      ? matchToneClass(percent)
+      : statusTone(report.overallStatus);
+  const verifyLabel = statusLabel(report.overallStatus);
+  const label =
+    caption ??
+    (isVerify
+      ? verifyLabel
+      : typeof matchRate === "number"
+        ? percent >= STRONG_MATCH_RATE
+          ? "Match"
+          : "Weak"
+        : "Trust");
 
   return (
     <>
       <span
         role="button"
         tabIndex={0}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        className={["trust-score", `trust-score-${variant}`, tone, className]
+          .filter(Boolean)
+          .join(" ")}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           setIsOpen(true);
         }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsOpen(true);
-          }
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          event.stopPropagation();
+          setIsOpen(true);
         }}
-        title={`Authenticity Score: ${report.trustIndex}/100 (${style.label}) - Click to inspect`}
-        className={`inline-flex items-center gap-1.5 rounded-full border font-medium transition-all select-none cursor-pointer ${
-          isSmall ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs"
-        } ${style.wrapper}`}
+        title={
+          isVerify
+            ? `Document trust ${report.trustIndex}/100 (${verifyLabel}) — inspect`
+            : `Match ${percent}% · document trust ${report.trustIndex}/100 — inspect`
+        }
+        aria-label={
+          isVerify
+            ? `Document authenticity ${report.trustIndex} ${verifyLabel}. Open details.`
+            : `Match ${percent} percent. Open authenticity details.`
+        }
       >
-        <span
-          className={`h-1.5 w-1.5 rounded-full shrink-0 ${style.dot} animate-pulse`}
-          aria-hidden="true"
-        />
-        <span className="font-semibold tabular-nums">{report.trustIndex}</span>
-        <span className="text-zinc-600">·</span>
-        <span>{style.label}</span>
+        {isVerify ? (
+          <>
+            <strong>{report.trustIndex}</strong>
+            <span>{label}</span>
+          </>
+        ) : (
+          <>
+            <strong>{percent}%</strong>
+            <span>{label}</span>
+          </>
+        )}
       </span>
 
       {isOpen && (

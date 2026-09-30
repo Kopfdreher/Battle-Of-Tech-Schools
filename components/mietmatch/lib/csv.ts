@@ -192,52 +192,5 @@ export function parseEmailList(text: string): { drafts: ApplicantDraft[]; errors
 }
 
 export const CSV_TEMPLATE = `name,email,net_income,household_size,contract,employment,arrears_letter,income_proof,employment_proof,schufa,smokes
-Mara Ellison,mara.ellison@example.com,4200,2,permanent,employed,yes,yes,yes,yes,no
-Jonas Richter,jonas.richter@example.com,3100,1,permanent,employed,yes,yes,yes,no,no
-Leila Hofmann,leila.hofmann@example.com,2800,2,fixed,employed,yes,yes,yes,yes,no
 `
 
-/** Build ~100 demo applicants as CSV text for download / import demos with distinct realistic names. */
-export function buildDemoCsv(count = 100): string {
-  const first = [
-    'Anna', 'Jonas', 'Leyla', 'Samir', 'Nina', 'Erik', 'Ayla', 'Tomas', 'Priya', 'Felix',
-    'Hanna', 'Omar', 'Clara', 'Luis', 'Sofia', 'Maximilian', 'Leon', 'Emma', 'Mia', 'Paul',
-    'Lukas', 'Matteo', 'Sophia', 'Emilia', 'Noah', 'Elias', 'David', 'Laura', 'Ben', 'Amelie',
-    'Elena', 'Florian', 'Sarah', 'Tim', 'Marie',
-  ]
-  const last = [
-    'Berger', 'Klein', 'Demir', 'Okonkwo', 'Hofmann', 'Richter', 'Ellison', 'Vogt', 'Lindqvist', 'Alvarez',
-    'Shah', 'Braun', 'Sjoberg', 'Khan', 'Weber', 'Silva', 'Novak', 'Müller', 'Schmidt', 'Schneider',
-    'Fischer', 'Meyer', 'Wagner', 'Becker', 'Schulz', 'Schäfer', 'Koch', 'Bauer', 'Zimmermann', 'Hartmann',
-    'Lange', 'Krause', 'Lehmann', 'Huber', 'Kowalski',
-  ]
-  const rows = [CSV_TEMPLATE.trim().split('\n')[0]]
-  for (let i = 0; i < count; i += 1) {
-    const f = first[i % first.length]
-    const round = Math.floor(i / first.length)
-    const l = last[(i * 7 + round) % last.length]
-    const name = `${f} ${l}`
-    const email = `${f.toLowerCase()}.${l.toLowerCase().replace(/[^\w]/g, '')}.${i + 1}@example.com`
-    const income = 1800 + ((i * 137) % 4000)
-    const household = 1 + (i % 4)
-    const contract = CONTRACTS[i % CONTRACTS.length]
-    const employment = EMPLOYMENTS[i % EMPLOYMENTS.length]
-    const yesNo = (n: number) => (i % n === 0 ? 'no' : 'yes')
-    rows.push(
-      [
-        name,
-        email,
-        String(income),
-        String(household),
-        contract,
-        employment,
-        yesNo(5),
-        yesNo(4),
-        yesNo(6),
-        yesNo(3),
-        i % 7 === 0 ? 'yes' : 'no',
-      ].join(','),
-    )
-  }
-  return `${rows.join('\n')}\n`
-}

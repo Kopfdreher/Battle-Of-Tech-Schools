@@ -15,6 +15,7 @@ export type SessionValue = {
   invitedIds: string[]
   invitations: Invitation[]
   marks: Record<string, ApplicantMark>
+  namesVisible: boolean
   signup: (name: string, email: string, password: string) => Promise<void>
   login: (email: string, password: string) => Promise<void>
   logout: () => void
@@ -25,8 +26,6 @@ export type SessionValue = {
   addApplicant: (draft: Omit<Applicant, 'id' | 'appliedAt'>) => Applicant
   importApplicants: (drafts: ApplicantDraft[], mode?: 'replace' | 'append') => number
   removeApplicant: (id: string) => void
-  loadSampleApplicants: () => void
-  loadDemoBoard: () => void
   connectMailbox: (provider: MailboxConnection['provider']) => void
   disconnectMailbox: () => void
   markInvited: (ids: string[]) => void
@@ -36,6 +35,7 @@ export type SessionValue = {
   cancelSlot: (slot: { date: string; time: string }) => void
   clearInvited: () => void
   setApplicantMark: (id: string, mark: ApplicantMark | null) => void
+  setNamesVisible: (visible: boolean) => void
 }
 
 export const SessionContext = createContext<SessionValue | null>(null)

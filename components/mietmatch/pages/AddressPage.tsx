@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearch } from '@/components/mietmatch/nav'
+import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
 import { resolveAddress, type ResolveOk } from '../lib/places'
 
@@ -13,11 +14,12 @@ type Result =
   | { kind: 'missing' }
 
 export function AddressPage() {
-  const { flat, setFlat, clearFlat } = useSession()
+  const { flat, setFlat } = useSession()
+  const { t } = useLocale()
   const { q } = useSearch({ from: '/_app/address' })
   const navigate = useNavigate()
   const query = q?.trim() ?? ''
-  const [draft, setDraft] = useState(query)
+  const [draft, setDraft] = useState(query || flat?.address || '')
   const [seenQuery, setSeenQuery] = useState(query)
   const [error, setError] = useState<string | null>(null)
   const [remote, setRemote] = useState<{
@@ -65,7 +67,7 @@ export function AddressPage() {
     event.preventDefault()
     const next = draft.trim()
     if (!next) {
-      setError('Paste or write a Berlin street address with a house number.')
+      setError(t('address.error.empty'))
       return
     }
     setError(null)
@@ -80,43 +82,22 @@ export function AddressPage() {
 
   return (
     <div className="address-page">
-      <header className="page-head">
-        <div>
-          <p className="kicker">Your listing</p>
-          <h1>Add the flat address</h1>
-          <p className="lede">
-            Landlords shortlist applicants against one Berlin flat. We check it is a real city address, then use rent
-            and rooms for affordability and household fit.
-          </p>
-        </div>
+      <header className="page-head address-head">
+        <p className="kicker">{t('address.kicker')}</p>
+        <h1>{t('address.title')}</h1>
+        <p className="lede">{t('address.lede')}</p>
       </header>
-
-      {flat ? (
-        <p className="hint">
-          Current flat: <strong>{flat.address}</strong>. Saving a new address replaces it.{' '}
-          <button
-            type="button"
-            className="text-button"
-            onClick={() => {
-              clearFlat()
-              void navigate({ to: '/' })
-            }}
-          >
-            Clear flat
-          </button>
-        </p>
-      ) : null}
 
       <form className="panel address-box" onSubmit={onSubmit}>
         <div className="field">
-          <label htmlFor="lookup-address">Berlin address</label>
+          <label htmlFor="lookup-address">{t('address.label')}</label>
           <textarea
             id="lookup-address"
             name="address"
-            rows={3}
+            rows={2}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Templiner Straße 7, 10437 Berlin"
+            placeholder={t('address.placeholder')}
           />
         </div>
         {error ? (
@@ -124,19 +105,17 @@ export function AddressPage() {
             {error}
           </p>
         ) : null}
-        <button className="btn primary" type="submit">
-          Look up this address
-        </button>
+        <div className="address-actions">
+          <button className="btn slim primary" type="submit">
+            {t('address.lookup')}
+          </button>
+        </div>
       </form>
 
-      {result.kind === 'loading' ? <p className="empty">Checking Berlin for that address…</p> : null}
-      {result.kind === 'missing' ? (
-        <p className="empty">
-          That is not a valid Berlin street address. Use a street name and house number in Berlin.
-        </p>
-      ) : null}
+      {result.kind === 'loading' ? <p className="address-status">{t('address.loading')}</p> : null}
+      {result.kind === 'missing' ? <p className="address-status bad">{t('address.missing')}</p> : null}
       {result.kind === 'outside' ? (
-        <p className="empty">{result.label} is outside Berlin. Only Berlin flats can be added.</p>
+        <p className="address-status bad">{t('address.outside', { label: result.label })}</p>
       ) : null}
       {result.kind === 'ready' ? <FlatPreview draft={result.draft} onSave={onSave} /> : null}
     </div>
@@ -150,27 +129,35 @@ function FlatPreview({
   draft: ResolveOk['draft']
   onSave: () => void
 }) {
+  const { t } = useLocale()
   return (
-    <article className="detail">
-      <header className="page-head">
-        <div>
-          <p className="kicker">
-            {draft.district || 'Berlin'} · {draft.bezirk}
-          </p>
-          <h2>{draft.address}</h2>
-          <p className="lede">
-            €{draft.rentWarm} warm · {draft.rooms} rooms · {draft.sqm} m²
-          </p>
-          <div className="place-actions">
-            <button className="btn primary" type="button" onClick={onSave}>
-              Use this flat
-            </button>
-            <Link className="btn" to="/">
-              Back to shortlist
-            </Link>
-          </div>
-        </div>
-      </header>
+    <article className="address-preview">
+      <p className="kicker">
+        {draft.district || 'Berlin'} · {draft.bezirk}
+      </p>
+      <h2>{draft.address}</h2>
+      <ul className="address-facts">
+        <li>
+          <span>{t('address.fact.rent')}</span>
+          <strong>€{draft.rentWarm}</strong>
+        </li>
+        <li>
+          <span>{t('address.fact.rooms')}</span>
+          <strong>{draft.rooms}</strong>
+        </li>
+        <li>
+          <span>{t('address.fact.size')}</span>
+          <strong>{draft.sqm} m²</strong>
+        </li>
+      </ul>
+      <div className="address-actions">
+        <button className="btn slim primary" type="button" onClick={onSave}>
+          {t('address.use')}
+        </button>
+        <Link className="btn slim ghost" to="/">
+          {t('address.back')}
+        </Link>
+      </div>
     </article>
   )
 }

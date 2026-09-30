@@ -1,11 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { SAMPLE_APPLICANTS } from '../data/applicants'
-import { LISTINGS } from '../data/listings'
 import { defaultRequirements, sanitizeRequirements } from '../data/requirements'
 import { authenticate, register } from '../lib/auth'
-import { buildDemoCsv, parseApplicantCsv } from '../lib/csv'
 import { authClient } from '@/lib/auth-client'
 import { createListingAction } from '@/app/actions/listings'
 import {
@@ -15,6 +12,7 @@ import {
   invitedKey,
   mailboxKey,
   marksKey,
+  namesVisibleKey,
   onboardingKey,
   readJson,
   removeKey,
@@ -32,7 +30,7 @@ import type {
   User,
 } from '../types'
 import { SessionContext, type ApplicantMark, type SessionValue } from './session'
-import { anonymizeApplicantRecord, isCodedAlias } from '../lib/anonymize'
+import { anonymizeApplicantRecord, isCodedAlias, resolveDisplayName } from '../lib/anonymize'
 
 type SessionState = {
   user: User | null
@@ -53,19 +51,16 @@ function anonymizeApplicant<T extends Applicant | Omit<Applicant, 'id' | 'applie
 /** Restore real names when older sessions stored "Applicant ABCD" codes. */
 function restoreDisplayName<T extends Applicant>(item: T): T {
   if (!isCodedAlias(item.displayName)) return item
-  const seed = SAMPLE_APPLICANTS.find(
-    (sample) =>
-      sample.fingerprint === item.fingerprint ||
-      (item.email && sample.email.toLowerCase() === item.email.toLowerCase()),
-  )
-  if (seed) return { ...item, displayName: seed.displayName }
-  // Fall back to a name-shaped label so blur still looks like a name, not a code.
-  return { ...item, displayName: 'Applicant name' }
+  const next = resolveDisplayName(item.displayName, item.fingerprint || item.id)
+  return { ...item, displayName: next }
 }
 
 function loadFlat(userId: string) {
   const raw = readJson<LandlordFlat | null>(flatKey(userId), null)
-  return raw && typeof raw.id === 'string' ? raw : null
+  if (!raw || typeof raw.id !== 'string') return null
+  // Drop old demo listings so landlords start from real data.
+  if (raw.id.startsWith('demo-flat-')) return null
+  return raw
 }
 
 function loadApplicants(userId: string) {
@@ -73,6 +68,7 @@ function loadApplicants(userId: string) {
   if (!Array.isArray(raw)) return []
   return raw
     .filter((item) => item && typeof item.id === 'string')
+    .filter((item) => !item.id.startsWith('demo-') && !item.id.startsWith('sample-'))
     .map((item) => anonymizeApplicant(restoreDisplayName(item)))
 }
 
@@ -142,7 +138,11 @@ type ServerBoard = { flat: LandlordFlat; applicants: Applicant[] }
 
 function withBoard(state: SessionState, board: ServerBoard | null): SessionState {
   if (!board) return state
-  return { ...state, flat: board.flat, applicants: board.applicants.map((item) => anonymizeApplicant(item)) }
+  return {
+    ...state,
+    flat: board.flat,
+    applicants: board.applicants.map((item) => anonymizeApplicant(restoreDisplayName(item))),
+  }
 }
 
 export function SessionProvider({
@@ -154,6 +154,7 @@ export function SessionProvider({
 }) {
   const [state, setState] = useState<SessionState>(() => withBoard(emptyState(), serverBoard))
   const [ready, setReady] = useState(false)
+  const [namesVisible, setNamesVisibleState] = useState(true)
   const session = authClient.useSession()
 
   useEffect(() => {
@@ -164,6 +165,7 @@ export function SessionProvider({
 
     if (!betterUser) {
       setState(withBoard(emptyState(), serverBoard))
+      setNamesVisibleState(true)
       setReady(true)
       return
     }
@@ -171,6 +173,8 @@ export function SessionProvider({
     const flat = loadFlat(userId!)
     const applicants = loadApplicants(userId!)
     const mailbox = loadMailbox(userId!)
+    const storedNames = readJson<boolean | null>(namesVisibleKey(userId!), null)
+    setNamesVisibleState(storedNames === null ? true : Boolean(storedNames))
     setState(withBoard({
       user: { id: betterUser.id, name: betterUser.name, email: betterUser.email },
       onboardingDone: resolveOnboardingDone(userId!, flat, applicants, mailbox),
@@ -184,6 +188,11 @@ export function SessionProvider({
     }, serverBoard))
     setReady(true)
   }, [serverBoard, session.isPending, session.data?.user])
+
+  useEffect(() => {
+    if (!state.user) return
+    writeJson(namesVisibleKey(state.user.id), namesVisible)
+  }, [state.user, namesVisible])
 
   useEffect(() => {
     if (!state.user) return
@@ -350,67 +359,6 @@ export function SessionProvider({
     [],
   )
 
-  const loadSampleApplicants = useCallback(() => {
-    const stamped = SAMPLE_APPLICANTS.map((item, index) => {
-      const id = `sample-${index}-${Date.now().toString(36)}`
-      return anonymizeApplicant({
-        ...item,
-        id,
-        appliedAt: new Date(Date.now() - index * 36e5).toISOString(),
-      })
-    })
-    setState((current) => ({
-      ...current,
-      applicants: stamped,
-      invitedIds: [],
-      invitations: [],
-      marks: {},
-    }))
-  }, [])
-
-  const loadDemoBoard = useCallback(() => {
-    const sample = LISTINGS[0]
-    const flat: LandlordFlat = {
-      id: `demo-flat-${Date.now().toString(36)}`,
-      address: sample.address,
-      district: sample.district,
-      bezirk: sample.bezirk,
-      lat: sample.lat,
-      lng: sample.lng,
-      rentWarm: sample.rentWarm,
-      rooms: sample.rooms,
-      sqm: sample.sqm,
-      addedAt: new Date().toISOString(),
-      berlin: sample.berlin,
-      sourceNote: 'Demo listing for trying the landlord shortlist.',
-    }
-    const parsed = parseApplicantCsv(buildDemoCsv(100))
-    const stamped = parsed.drafts.map((item, index) => {
-      const id = `demo-${index}-${Date.now().toString(36)}`
-      return anonymizeApplicant({
-        ...item,
-        id,
-        appliedAt: new Date(Date.now() - index * 60_000).toISOString(),
-        messagePreview: '[Demo applicant — free text is not used for scoring.]',
-      })
-    })
-    setState((current) => ({
-      ...current,
-      flat,
-      applicants: stamped,
-      invitedIds: [],
-      invitations: [],
-      marks: {},
-      mailbox: current.user
-        ? {
-            provider: 'gmail',
-            email: current.user.email,
-            connectedAt: new Date().toISOString(),
-          }
-        : current.mailbox,
-    }))
-  }, [])
-
   const connectMailbox = useCallback((provider: MailboxProvider) => {
     setState((current) => {
       if (!current.user) return current
@@ -525,10 +473,15 @@ export function SessionProvider({
     })
   }, [])
 
+  const setNamesVisible = useCallback((visible: boolean) => {
+    setNamesVisibleState(visible)
+  }, [])
+
   const value = useMemo<SessionValue>(
     () => ({
       ready,
       ...state,
+      namesVisible,
       signup,
       login,
       logout,
@@ -539,8 +492,6 @@ export function SessionProvider({
       addApplicant,
       importApplicants,
       removeApplicant,
-      loadSampleApplicants,
-      loadDemoBoard,
       connectMailbox,
       disconnectMailbox,
       markInvited,
@@ -550,10 +501,12 @@ export function SessionProvider({
       cancelSlot,
       clearInvited,
       setApplicantMark,
+      setNamesVisible,
     }),
     [
       ready,
       state,
+      namesVisible,
       signup,
       login,
       logout,
@@ -564,8 +517,6 @@ export function SessionProvider({
       addApplicant,
       importApplicants,
       removeApplicant,
-      loadSampleApplicants,
-      loadDemoBoard,
       connectMailbox,
       disconnectMailbox,
       markInvited,
@@ -575,6 +526,7 @@ export function SessionProvider({
       cancelSlot,
       clearInvited,
       setApplicantMark,
+      setNamesVisible,
     ],
   )
 

@@ -11,44 +11,30 @@ export function ImportPage() {
 
   return (
     <div className="import-page">
-      <header className="page-head">
-        <h1>{t('import.title')}</h1>
-        <p className="lede">{t('import.lede')}</p>
-      </header>
-
-      <section className="panel flat-summary">
-        <div>
-          <p className="kicker">{t('import.context')}</p>
-          {flat ? (
-            <>
-              <h2>{flat.address}</h2>
-              <p className="lede">
-                {t('import.stats', {
-                  rent: flat.rentWarm,
-                  rooms: flat.rooms,
-                  count: applicants.length,
-                })}
-              </p>
-            </>
-          ) : (
-            <>
-              <h2>{t('import.noFlat')}</h2>
-              <p className="lede">{t('import.noFlatLede')}</p>
-            </>
-          )}
+      <header className="import-head">
+        <div className="import-head-copy">
+          <p className="kicker">{t('import.kicker')}</p>
+          <h1>{t('import.title')}</h1>
         </div>
-        <div className="place-actions">
+        <div className="import-head-meta">
           {flat ? (
-            <Link className="btn primary" to="/">
+            <p className="import-flat-chip">
+              {flat.address} · €{flat.rentWarm} · {applicants.length}
+            </p>
+          ) : (
+            <p className="hint">{t('import.noFlat')}</p>
+          )}
+          {flat ? (
+            <Link className="btn slim primary" to="/">
               {t('import.openShortlist')}
             </Link>
           ) : (
-            <Link className="btn primary" to="/address">
+            <Link className="btn slim primary" to="/address">
               {t('import.addFlatFirst')}
             </Link>
           )}
         </div>
-      </section>
+      </header>
 
       <ImportApplicants />
     </div>

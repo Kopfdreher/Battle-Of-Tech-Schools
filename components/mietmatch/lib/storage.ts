@@ -29,6 +29,10 @@ export function marksKey(userId: string) {
   return `kiezbrief.landlord.marks.${userId}`
 }
 
+export function namesVisibleKey(userId: string) {
+  return `kiezbrief.landlord.namesVisible.${userId}`
+}
+
 export function onboardingKey(userId: string) {
   return `kiezbrief.landlord.onboarding.${userId}`
 }
