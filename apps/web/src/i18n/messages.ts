@@ -9,7 +9,6 @@ type Dict = Record<string, string>
 
 const en: Dict = {
   'brand.tagline': 'For Berlin landlords',
-  'mascot.alt': 'BesichtiGo bear holding a house key',
   'nav.main': 'Main',
   'nav.shortlist': 'Shortlist',
   'nav.appointments': 'Appointments',
@@ -235,7 +234,6 @@ const en: Dict = {
 
 const de: Dict = {
   'brand.tagline': 'Für Berliner Vermieter',
-  'mascot.alt': 'BesichtiGo-Bär mit einem Wohnungsschlüssel',
   'nav.main': 'Hauptmenü',
   'nav.shortlist': 'Shortlist',
   'nav.appointments': 'Termine',

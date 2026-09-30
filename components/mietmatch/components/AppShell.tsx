@@ -45,7 +45,6 @@ export function AppShell({ children }: { children?: ReactNode }) {
           })}
         </nav>
         <div className="side-foot">
-          <img className="side-mascot" src="/mascot.png" alt="" />
           <ProfileMenu />
         </div>
       </aside>

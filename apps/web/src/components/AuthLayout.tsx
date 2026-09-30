@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import mascotUrl from '../assets/mascot.png'
 import { useLocale } from '../context/LocaleContext.tsx'
 import { Brand } from './Brand.tsx'
 import { LanguageSwitcher } from './LanguageSwitcher.tsx'
@@ -33,7 +32,6 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           </ol>
           <p className="auth-foot">{t('auth.foot')}</p>
         </div>
-        <img className="auth-mascot" src={mascotUrl} alt={t('mascot.alt')} />
       </section>
       <section className="auth-panel">
         <div className="auth-card panel">{children}</div>
