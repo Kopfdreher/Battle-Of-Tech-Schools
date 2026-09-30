@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useId, useRef, useState } from 'react'
 import { Link } from '@/components/mietmatch/nav'
-import { syncApplicationsAction } from '@/app/actions/n8n'
+import { syncApplicationsAction, syncCsvAction } from '@/app/actions/n8n'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
 import { parseApplicantCsv } from '../lib/csv'
@@ -22,19 +22,13 @@ export function ImportApplicants() {
 
   async function applyCsv(text: string) {
     setError(null)
-    setMessage(null)
-    const parsed = parseApplicantCsv(text)
-    if (parsed.drafts.length === 0) {
-      setError(parsed.errors[0] ?? t('import.csv.error'))
-      return
-    }
-    const count = await importApplicants(parsed.drafts, mode)
-    setMessage(
-      t('import.csv.imported', {
-        count,
-        skipped: parsed.errors.length,
-      }),
-    )
+    setMessage("Sending CSV to n8n for processing...")
+    
+    // We send the raw CSV text directly to the new n8n webhook
+    await syncCsvAction(text, mode)
+    
+    setMessage("Processing complete! Refreshing data...")
+    await new Promise(resolve => setTimeout(resolve, 5000))
     router.refresh()
   }
 
