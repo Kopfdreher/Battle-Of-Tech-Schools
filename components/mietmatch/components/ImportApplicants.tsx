@@ -197,7 +197,7 @@ export function ImportApplicants() {
           <button
             type="button"
             className="btn"
-            onClick={() => download('mietmatch-applicants-template.csv', CSV_TEMPLATE)}
+            onClick={() => download('besichtigo-applicants-template.csv', CSV_TEMPLATE)}
           >
             {t('import.csv.template')}
           </button>
@@ -207,7 +207,7 @@ export function ImportApplicants() {
           <button
             type="button"
             className="btn ghost"
-            onClick={() => download('mietmatch-100-applicants.csv', buildDemoCsv(100))}
+            onClick={() => download('besichtigo-100-applicants.csv', buildDemoCsv(100))}
           >
             {t('import.csv.downloadDemo')}
           </button>

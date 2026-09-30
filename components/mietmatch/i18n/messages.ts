@@ -9,7 +9,9 @@ type Dict = Record<string, string>
 
 const en: Dict = {
   'brand.tagline': 'For Berlin landlords',
-  'mascot.alt': 'Mietmatch bear holding a house key',
+  'mascot.alt': 'BesichtiGo bear holding a house key',
+  'applicant.alias': 'Applicant {code}',
+
   'nav.main': 'Main',
   'nav.shortlist': 'Shortlist',
   'nav.appointments': 'Appointments',
@@ -25,7 +27,7 @@ const en: Dict = {
   'auth.audience': 'Landlord tool',
   'auth.title': 'Pick the right tenant for your flat',
   'auth.lede':
-    'When hundreds apply for one Berlin listing, Mietmatch ranks applicants against your rules: income, contract, household size, no-arrears letter, and documents — fairly, without scoring free-text messages.',
+    'When hundreds apply for one Berlin listing, BesichtiGo ranks applicants against your rules: income, contract, household size, no-arrears letter, and documents — fairly, without scoring free-text messages.',
   'auth.step1': 'Add the flat you need to fill.',
   'auth.step2': 'Import applicants from a CSV or email list.',
   'auth.step3': 'Shortlist by match % — green for strong fits, red for weak ones.',
@@ -45,7 +47,7 @@ const en: Dict = {
   'login.error.generic': 'Could not log in.',
 
   'signup.kicker': 'Landlord sign up',
-  'signup.title': 'Create your Mietmatch account',
+  'signup.title': 'Create your BesichtiGo account',
   'signup.lede': 'Set up landlord access for your Berlin flat. Next you import applicants and shortlist them by match %.',
   'signup.name': 'Name',
   'signup.email': 'Email',
@@ -64,25 +66,25 @@ const en: Dict = {
 
   'onboarding.hello': 'Hi, {name}',
   'onboarding.progressLabel': 'Onboarding steps',
-  'onboarding.progress.fit': 'Best fit',
+  'onboarding.progress.fit': 'Tenant factors',
   'onboarding.progress.email': 'Email permission',
   'onboarding.progress.csv': 'CSV option',
   'onboarding.back': 'Back',
 
-  'onboarding.fit.kicker': 'Step 1 of 3 · Your rules',
-  'onboarding.fit.title': 'Who is the best fit for your flat?',
+  'onboarding.fit.kicker': 'Step 1 of 3 · Your criteria',
+  'onboarding.fit.title': 'What matters most in a potential tenant?',
   'onboarding.fit.lede':
-    'Pick the criteria that matter. Then rank them — number 1 counts most in the match score.',
+    'Pick the factors you care about — income, contract, household size, documents — then rank them. Rank 1 is the most important.',
   'onboarding.retention':
     'Applicant data is deleted from the database automatically after 30 days.',
-  'onboarding.fit.pickLabel': 'Criteria',
+  'onboarding.fit.pickLabel': 'Tenant factors',
   'onboarding.fit.rankLabel': 'Importance order',
   'onboarding.fit.mostImportant': 'Most important',
   'onboarding.fit.importance': 'Priority {rank}',
   'onboarding.fit.moveUp': 'Move up',
   'onboarding.fit.moveDown': 'Move down',
   'onboarding.fit.continue': 'Continue',
-  'onboarding.fit.error': 'Choose at least one criterion to continue.',
+  'onboarding.fit.error': 'Choose at least one factor to continue.',
 
   'onboarding.email.kicker': 'Step 2 of 3 · Inbox access',
   'onboarding.email.title': 'Connect your email to fetch applications?',
@@ -271,7 +273,7 @@ const en: Dict = {
   'import.scan.3': 'Extracting structured fields (income, contract, documents)…',
   'import.scan.4': 'Building your shortlist…',
   'import.scan.done': 'Read {count} application emails from {provider}. Match % is ready.',
-  'import.consent.title': 'Allow Mietmatch to read application mail?',
+  'import.consent.title': 'Allow BesichtiGo to read application mail?',
   'import.consent.1': 'See messages that look like flat applications',
   'import.consent.2': 'Extract structured fields (income, household, documents)',
   'import.consent.3': 'Keep access read-only — we do not send mail',
@@ -281,7 +283,7 @@ const en: Dict = {
 
   'settings.kicker': 'Account',
   'settings.title': 'Settings',
-  'settings.lede': 'Manage mailbox permission and how you bring applicants into Mietmatch.',
+  'settings.lede': 'Manage mailbox permission and how you bring applicants into BesichtiGo.',
   'settings.account.kicker': 'Profile',
   'settings.account.title': 'Signed in as',
   'settings.mailbox.kicker': 'Email permission',
@@ -348,7 +350,9 @@ const en: Dict = {
 
 const de: Dict = {
   'brand.tagline': 'Für Berliner Vermieter',
-  'mascot.alt': 'Mietmatch-Bär mit einem Wohnungsschlüssel',
+  'mascot.alt': 'BesichtiGo-Bär mit einem Wohnungsschlüssel',
+  'applicant.alias': 'Bewerber {code}',
+
   'nav.main': 'Hauptmenü',
   'nav.shortlist': 'Shortlist',
   'nav.appointments': 'Termine',
@@ -364,7 +368,7 @@ const de: Dict = {
   'auth.audience': 'Vermieter-Tool',
   'auth.title': 'Den richtigen Mieter für Ihre Wohnung finden',
   'auth.lede':
-    'Wenn Hunderte auf eine Berliner Anzeige antworten, sortiert Mietmatch Bewerber nach Ihren Regeln: Einkommen, Vertrag, Haushaltsgröße, Mietschuldenfreiheit und Unterlagen — fair, ohne Freitext zu bewerten.',
+    'Wenn Hunderte auf eine Berliner Anzeige antworten, sortiert BesichtiGo Bewerber nach Ihren Regeln: Einkommen, Vertrag, Haushaltsgröße, Mietschuldenfreiheit und Unterlagen — fair, ohne Freitext zu bewerten.',
   'auth.step1': 'Fügen Sie die Wohnung hinzu, die Sie vermieten wollen.',
   'auth.step2': 'Importieren Sie Bewerber per CSV oder E-Mail-Liste.',
   'auth.step3': 'Shortlist nach Match-% — grün für starke, rot für schwache Passungen.',
@@ -385,7 +389,7 @@ const de: Dict = {
   'login.error.generic': 'Anmeldung fehlgeschlagen.',
 
   'signup.kicker': 'Vermieter-Registrierung',
-  'signup.title': 'Mietmatch-Konto erstellen',
+  'signup.title': 'BesichtiGo-Konto erstellen',
   'signup.lede':
     'Richten Sie den Vermieterzugang für Ihre Berliner Wohnung ein. Danach importieren und shortlisten Sie Bewerber nach Match-%.',
   'signup.name': 'Name',
@@ -405,25 +409,25 @@ const de: Dict = {
 
   'onboarding.hello': 'Hallo, {name}',
   'onboarding.progressLabel': 'Onboarding-Schritte',
-  'onboarding.progress.fit': 'Beste Passung',
+  'onboarding.progress.fit': 'Mieter-Faktoren',
   'onboarding.progress.email': 'E-Mail-Erlaubnis',
   'onboarding.progress.csv': 'CSV-Option',
   'onboarding.back': 'Zurück',
 
-  'onboarding.fit.kicker': 'Schritt 1 von 3 · Ihre Regeln',
-  'onboarding.fit.title': 'Wer passt am besten zu Ihrer Wohnung?',
+  'onboarding.fit.kicker': 'Schritt 1 von 3 · Ihre Kriterien',
+  'onboarding.fit.title': 'Was zählt bei einem potenziellen Mieter am meisten?',
   'onboarding.fit.lede':
-    'Wählen Sie die Kriterien, die zählen. Dann ordnen Sie sie — Platz 1 wiegt im Match am stärksten.',
+    'Wählen Sie die Faktoren, die Ihnen wichtig sind — Einkommen, Vertrag, Haushaltsgröße, Unterlagen — und ordnen Sie sie. Rang 1 ist am wichtigsten.',
   'onboarding.retention':
     'Bewerberdaten werden nach 30 Tagen automatisch aus der Datenbank gelöscht.',
-  'onboarding.fit.pickLabel': 'Kriterien',
+  'onboarding.fit.pickLabel': 'Mieter-Faktoren',
   'onboarding.fit.rankLabel': 'Reihenfolge der Wichtigkeit',
   'onboarding.fit.mostImportant': 'Am wichtigsten',
   'onboarding.fit.importance': 'Priorität {rank}',
   'onboarding.fit.moveUp': 'Nach oben',
   'onboarding.fit.moveDown': 'Nach unten',
   'onboarding.fit.continue': 'Weiter',
-  'onboarding.fit.error': 'Wählen Sie mindestens ein Kriterium.',
+  'onboarding.fit.error': 'Wählen Sie mindestens einen Faktor.',
 
   'onboarding.email.kicker': 'Schritt 2 von 3 · Postfachzugriff',
   'onboarding.email.title': 'E-Mail verbinden, um Bewerbungen zu holen?',
@@ -614,7 +618,7 @@ const de: Dict = {
   'import.scan.3': 'Strukturierte Felder werden gelesen…',
   'import.scan.4': 'Shortlist wird gebaut…',
   'import.scan.done': '{count} Bewerbungsmails aus {provider} gelesen. Match-% ist bereit.',
-  'import.consent.title': 'Darf Mietmatch Bewerbungsmails lesen?',
+  'import.consent.title': 'Darf BesichtiGo Bewerbungsmails lesen?',
   'import.consent.1': 'Nachrichten sehen, die wie Wohnungsbewerbungen aussehen',
   'import.consent.2': 'Strukturierte Felder holen (Einkommen, Haushalt, Unterlagen)',
   'import.consent.3': 'Nur Lesezugriff — wir senden keine Mails',

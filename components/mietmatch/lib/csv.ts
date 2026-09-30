@@ -1,5 +1,6 @@
 import type { Applicant, ContractType, EmploymentType } from '../types'
 import { applicantFingerprint } from '../data/applicants'
+import { applicantCode } from './anonymize'
 
 export type ApplicantDraft = Omit<Applicant, 'id' | 'appliedAt'>
 
@@ -100,9 +101,10 @@ function rowToDraft(cells: string[], index: ReturnType<typeof mapHeaders>): Appl
 
   const safeEmail = email.includes('@') ? email.toLowerCase() : `${displayName.replace(/\s+/g, '.').toLowerCase()}@import.local`
   const name = displayName || safeEmail.split('@')[0]
+  const fingerprint = applicantFingerprint(safeEmail, name)
 
   return {
-    displayName: name,
+    displayName: `Applicant ${applicantCode(fingerprint)}`,
     email: safeEmail,
     netIncomeMonthly: numberOr(get('netIncomeMonthly'), 0),
     householdSize: Math.max(1, Math.round(numberOr(get('householdSize'), 1))),
@@ -114,7 +116,7 @@ function rowToDraft(cells: string[], index: ReturnType<typeof mapHeaders>): Appl
     hasSchufa: truthy(get('hasSchufa')),
     smokes: truthy(get('smokes')),
     messagePreview: '[Imported from CSV — free text is not used for scoring.]',
-    fingerprint: applicantFingerprint(safeEmail, name),
+    fingerprint,
   }
 }
 
@@ -166,9 +168,10 @@ export function parseEmailList(text: string): { drafts: ApplicantDraft[]; errors
       errors.push(`Skipped “${line}” — not an email.`)
       continue
     }
-    const displayName = email.split('@')[0]?.replace(/[._]/g, ' ') || email
+    const localPart = email.split('@')[0]?.replace(/[._]/g, ' ') || email
+    const fingerprint = applicantFingerprint(email, localPart)
     drafts.push({
-      displayName,
+      displayName: `Applicant ${applicantCode(fingerprint)}`,
       email,
       netIncomeMonthly: 0,
       householdSize: 1,
@@ -180,7 +183,7 @@ export function parseEmailList(text: string): { drafts: ApplicantDraft[]; errors
       hasSchufa: false,
       smokes: false,
       messagePreview: '[From email list — add structured CSV fields for a fair score.]',
-      fingerprint: applicantFingerprint(email, displayName),
+      fingerprint,
     })
   }
   return { drafts, errors }

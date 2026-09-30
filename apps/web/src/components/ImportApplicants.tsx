@@ -257,7 +257,7 @@ export function ImportApplicants() {
         <div className="backdrop" role="dialog" aria-modal="true" aria-labelledby="consent-title">
           <div className="dialog panel">
             <p className="kicker">{consentFor === 'gmail' ? 'Gmail' : 'Outlook'}</p>
-            <h2 id="consent-title">Allow Mietmatch to read application mail?</h2>
+            <h2 id="consent-title">Allow BesichtiGo to read application mail?</h2>
             <ul className="scopes">
               <li>See messages that look like flat applications</li>
               <li>Extract structured fields (income, household, documents)</li>

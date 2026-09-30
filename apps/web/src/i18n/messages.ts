@@ -9,7 +9,7 @@ type Dict = Record<string, string>
 
 const en: Dict = {
   'brand.tagline': 'For Berlin landlords',
-  'mascot.alt': 'Mietmatch bear holding a house key',
+  'mascot.alt': 'BesichtiGo bear holding a house key',
   'nav.main': 'Main',
   'nav.shortlist': 'Shortlist',
   'nav.appointments': 'Appointments',
@@ -23,7 +23,7 @@ const en: Dict = {
   'auth.audience': 'Landlord tool',
   'auth.title': 'Pick the right tenant for your flat',
   'auth.lede':
-    'When hundreds apply for one Berlin listing, Mietmatch ranks applicants against your rules: income, contract, household size, no-arrears letter, and documents — fairly, without scoring free-text messages.',
+    'When hundreds apply for one Berlin listing, BesichtiGo ranks applicants against your rules: income, contract, household size, no-arrears letter, and documents — fairly, without scoring free-text messages.',
   'auth.step1': 'Add the flat you need to fill.',
   'auth.step2': 'Import applicants from a CSV or email list.',
   'auth.step3': 'Shortlist by match % — green for strong fits, red for weak ones.',
@@ -43,7 +43,7 @@ const en: Dict = {
   'login.error.generic': 'Could not log in.',
 
   'signup.kicker': 'Landlord sign up',
-  'signup.title': 'Create your Mietmatch account',
+  'signup.title': 'Create your BesichtiGo account',
   'signup.lede': 'Set up landlord access for your Berlin flat. Next you import applicants and shortlist them by match %.',
   'signup.name': 'Name',
   'signup.email': 'Email',
@@ -235,7 +235,7 @@ const en: Dict = {
 
 const de: Dict = {
   'brand.tagline': 'Für Berliner Vermieter',
-  'mascot.alt': 'Mietmatch-Bär mit einem Wohnungsschlüssel',
+  'mascot.alt': 'BesichtiGo-Bär mit einem Wohnungsschlüssel',
   'nav.main': 'Hauptmenü',
   'nav.shortlist': 'Shortlist',
   'nav.appointments': 'Termine',
@@ -249,7 +249,7 @@ const de: Dict = {
   'auth.audience': 'Vermieter-Tool',
   'auth.title': 'Den richtigen Mieter für Ihre Wohnung finden',
   'auth.lede':
-    'Wenn Hunderte auf eine Berliner Anzeige antworten, sortiert Mietmatch Bewerber nach Ihren Regeln: Einkommen, Vertrag, Haushaltsgröße, Mietschuldenfreiheit und Unterlagen — fair, ohne Freitext zu bewerten.',
+    'Wenn Hunderte auf eine Berliner Anzeige antworten, sortiert BesichtiGo Bewerber nach Ihren Regeln: Einkommen, Vertrag, Haushaltsgröße, Mietschuldenfreiheit und Unterlagen — fair, ohne Freitext zu bewerten.',
   'auth.step1': 'Fügen Sie die Wohnung hinzu, die Sie vermieten wollen.',
   'auth.step2': 'Importieren Sie Bewerber per CSV oder E-Mail-Liste.',
   'auth.step3': 'Shortlist nach Match-% — grün für starke, rot für schwache Passungen.',
@@ -270,7 +270,7 @@ const de: Dict = {
   'login.error.generic': 'Anmeldung fehlgeschlagen.',
 
   'signup.kicker': 'Vermieter-Registrierung',
-  'signup.title': 'Mietmatch-Konto erstellen',
+  'signup.title': 'BesichtiGo-Konto erstellen',
   'signup.lede':
     'Richten Sie den Vermieterzugang für Ihre Berliner Wohnung ein. Danach importieren und shortlisten Sie Bewerber nach Match-%.',
   'signup.name': 'Name',

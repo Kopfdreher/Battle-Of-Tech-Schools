@@ -116,7 +116,7 @@ export function OnboardingPage() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'mietmatch-applicants.csv'
+    link.download = 'besichtigo-applicants.csv'
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -126,7 +126,7 @@ export function OnboardingPage() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'mietmatch-sample-applicants.csv'
+    link.download = 'besichtigo-sample-applicants.csv'
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -162,45 +162,35 @@ export function OnboardingPage() {
         </div>
       </div>
 
-      <main className="wizard-stage" key={step}>
-        <img className="wizard-mascot" src="/mascot.png" alt="" />
+      <main className={step === 'fit' ? 'wizard-stage wizard-stage-fit' : 'wizard-stage'} key={step}>
+        {step === 'fit' ? null : <img className="wizard-mascot" src="/mascot.png" alt="" />}
         {step === 'fit' ? (
-          <section className="wizard-panel">
+          <section className="wizard-panel wizard-panel-fit">
             <p className="kicker">{t('onboarding.fit.kicker')}</p>
             <h1>{t('onboarding.fit.title')}</h1>
             <p className="lede">{t('onboarding.fit.lede')}</p>
-            <div className="wizard-chip-grid" role="group" aria-label={t('onboarding.fit.pickLabel')}>
-              {ONBOARD_CRITERIA.map((item) => {
-                const on = selected.includes(item.id)
+            <ul className="wizard-fit-list" aria-label={t('onboarding.fit.pickLabel')}>
+              {[
+                ...selected,
+                ...ONBOARD_CRITERIA.map((item) => item.id).filter((id) => !selected.includes(id)),
+              ].map((id) => {
+                const on = selected.includes(id)
+                const index = selected.indexOf(id)
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={on ? 'wizard-chip on' : 'wizard-chip'}
-                    aria-pressed={on}
-                    onClick={() => toggleCriterion(item.id)}
-                  >
-                    {t(`criterion.${item.id}`)}
-                  </button>
-                )
-              })}
-            </div>
-            {selected.length > 0 ? (
-              <div className="wizard-rank">
-                <p className="wizard-rank-label">{t('onboarding.fit.rankLabel')}</p>
-                <ol className="wizard-rank-list">
-                  {selected.map((id, index) => (
-                    <li key={id}>
-                      <span className="wizard-rank-num">{index + 1}</span>
-                      <div className="wizard-rank-copy">
-                        <strong>{t(`criterion.${id}`)}</strong>
-                        <small>
-                          {index === 0
-                            ? t('onboarding.fit.mostImportant')
-                            : t('onboarding.fit.importance', { rank: index + 1 })}
-                        </small>
-                      </div>
-                      <div className="wizard-rank-move">
+                  <li key={id} className={on ? 'on' : undefined}>
+                    <button
+                      type="button"
+                      className="wizard-fit-toggle"
+                      aria-pressed={on}
+                      onClick={() => toggleCriterion(id)}
+                    >
+                      <span className="wizard-fit-num" aria-hidden="true">
+                        {on ? index + 1 : ''}
+                      </span>
+                      <span>{t(`criterion.${id}`)}</span>
+                    </button>
+                    {on ? (
+                      <div className="wizard-fit-move">
                         <button
                           type="button"
                           className="btn ghost"
@@ -220,11 +210,11 @@ export function OnboardingPage() {
                           ↓
                         </button>
                       </div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            ) : null}
+                    ) : null}
+                  </li>
+                )
+              })}
+            </ul>
             {error ? (
               <p className="error" role="alert">
                 {error}
