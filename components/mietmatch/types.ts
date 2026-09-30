@@ -119,6 +119,8 @@ export type Applicant = {
   displayName: string
   /** Contact email — used for duplicate detection, not for scoring. */
   email: string
+  /** Original unmasked contact email if known, used for sending actual invitation emails. */
+  rawEmail?: string
   netIncomeMonthly: number
   householdSize: number
   contractType: ContractType

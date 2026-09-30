@@ -272,6 +272,11 @@ const en: Dict = {
   'invite.error.done': 'Everyone in “{group}” has already been invited. Reset invitations or pick another group.',
   'invite.error.datetime': 'Choose a visit date and time.',
   'invite.error.count': 'Enter how many people to invite in this batch.',
+  'invite.success': 'Invitation emails sent successfully to {recipient}!',
+  'invite.successSimulated': 'Invitations generated (Simulated dispatch to {recipient}).',
+  'invite.sampleEmailHint': 'Live dispatch recipient: {email}',
+  'invite.error.sendFailed': 'Failed to send invitation: {error}',
+  'invite.error.sandbox': 'Resend Sandbox restriction: Test emails can only be sent to your registered Resend email address ({recipient}).',
 
   'import.kicker': 'Intake',
   'import.title': 'Get applicants',
@@ -686,6 +691,11 @@ const de: Dict = {
     'Alle in „{group}“ wurden bereits eingeladen. Einladungen zurücksetzen oder andere Gruppe wählen.',
   'invite.error.datetime': 'Datum und Uhrzeit wählen.',
   'invite.error.count': 'Anzahl für diesen Batch eingeben.',
+  'invite.success': 'Einladungs-E-Mails erfolgreich an {recipient} gesendet!',
+  'invite.successSimulated': 'Einladungen generiert (Simulierter Versand an {recipient}).',
+  'invite.sampleEmailHint': 'Live-Empfänger: {email}',
+  'invite.error.sendFailed': 'Fehler beim Senden der Einladung: {error}',
+  'invite.error.sandbox': 'Resend Sandbox-Einschränkung: Test-E-Mails können nur an Ihre registrierte Resend-Adresse ({recipient}) gesendet werden.',
 
   'import.kicker': 'Aufnahme',
   'import.title': 'Bewerber holen',
