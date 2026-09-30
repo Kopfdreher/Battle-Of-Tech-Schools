@@ -8,6 +8,7 @@ import type { ListGroup } from './ApplicantRow'
 import type { Verdict } from '../lib/match'
 import type { Applicant, LandlordFlat } from '../types'
 import { BlurredName } from './BlurredName'
+import { sendInvitationEmail } from '@/app/actions/send-invitation'
 
 type Ranked = {
   applicant: Applicant
@@ -84,6 +85,7 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
   const [sending, setSending] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [successNotice, setSuccessNotice] = useState<string | null>(null)
   const [batches, setBatches] = useState<SentBatch[]>([])
 
   useEffect(() => {
@@ -113,9 +115,10 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
     setCountText(String(Math.min(Math.floor(parsed), maxBatch)))
   }
 
-  function onSubmit(event: FormEvent) {
+  async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setError(null)
+    setSuccessNotice(null)
     clampCountText()
     if (pool.length === 0) {
       setError(group === 'like' ? t('invite.error.noLiked') : t('invite.error.none'))
@@ -141,37 +144,69 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
     }
 
     setSending(true)
-    setProgress(0)
-    const total = invitees.length
-    let sent = 0
+    setProgress(15)
+
     const timer = window.setInterval(() => {
-      sent += 1
-      setProgress(Math.round((sent / total) * 100))
-      if (sent >= total) {
-        window.clearInterval(timer)
-        scheduleInvitations({
-          applicantIds: invitees.map((row) => row.applicant.id),
+      setProgress((prev) => (prev < 85 ? prev + 15 : prev))
+    }, 180)
+
+    try {
+      const applicantNames = invitees.map((row) => row.applicant.displayName)
+      const res = await sendInvitationEmail({
+        landlordName,
+        flatAddress: flat.address,
+        date,
+        time,
+        count: invitees.length,
+        applicantNames,
+        recipientEmail: 'besichtigo@gmail.com',
+      })
+
+      window.clearInterval(timer)
+      setProgress(100)
+
+      if (!res.success) {
+        if (res.error?.includes('only send testing emails to your own email address')) {
+          setError(t('invite.error.sandbox', { recipient: res.recipient }))
+        } else {
+          setError(t('invite.error.sendFailed', { error: res.error || '' }))
+        }
+        return
+      }
+
+      scheduleInvitations({
+        applicantIds: invitees.map((row) => row.applicant.id),
+        date,
+        time,
+      })
+
+      setBatches((current) => [
+        {
+          id: `invite-${Date.now().toString(36)}`,
+          count: invitees.length,
           date,
           time,
-        })
-        setBatches((current) => [
-          {
-            id: `invite-${Date.now().toString(36)}`,
-            count: invitees.length,
-            date,
-            time,
-            names: invitees.map((row) => row.applicant.displayName),
-            fromRank: invitees[0]!.number,
-            toRank: invitees[invitees.length - 1]!.number,
-            group,
-            sentAt: new Date().toISOString(),
-          },
-          ...current,
-        ])
-        setSending(false)
-        setProgress(100)
-      }
-    }, 280)
+          names: applicantNames,
+          fromRank: invitees[0]!.number,
+          toRank: invitees[invitees.length - 1]!.number,
+          group,
+          sentAt: new Date().toISOString(),
+        },
+        ...current,
+      ])
+
+      setSuccessNotice(
+        res.simulated
+          ? t('invite.successSimulated', { recipient: res.recipient })
+          : t('invite.success', { recipient: res.recipient })
+      )
+    } catch (err: unknown) {
+      window.clearInterval(timer)
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      setError(t('invite.error.sendFailed', { error: message }))
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -259,13 +294,18 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
       </form>
 
       {recipients.length > 0 ? (
-        <p className="hint invite-mail-sample">
-          {t('invite.mail', {
-            name: landlordName,
-            address: flat.address,
-            when: formatVisit(date, time),
-          })}
-        </p>
+        <div className="invite-mail-sample" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <p className="hint" style={{ margin: 0 }}>
+            {t('invite.mail', {
+              name: landlordName,
+              address: flat.address,
+              when: formatVisit(date, time),
+            })}
+          </p>
+          <p className="hint" style={{ margin: 0, fontSize: '12px', color: '#059669', fontWeight: 600 }}>
+            ✉️ {t('invite.sampleEmailHint', { email: 'besichtigo@gmail.com' })}
+          </p>
+        </div>
       ) : null}
 
       {sending ? (
@@ -278,6 +318,23 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
       ) : null}
 
       {error ? <p className="error">{error}</p> : null}
+
+      {successNotice ? (
+        <div
+          style={{
+            padding: '10px 14px',
+            borderRadius: '8px',
+            background: 'rgba(34, 197, 94, 0.1)',
+            border: '1px solid rgba(34, 197, 94, 0.3)',
+            color: '#15803d',
+            fontSize: '13px',
+            lineHeight: '1.5',
+            marginTop: '8px',
+          }}
+        >
+          {successNotice}
+        </div>
+      ) : null}
 
       {batches.length > 0 ? (
         <div className="invite-sent-log" aria-live="polite">

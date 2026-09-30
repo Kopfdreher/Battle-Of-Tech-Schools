@@ -98,6 +98,7 @@ export async function loadBoard(userId?: string): Promise<Board | null> {
           id: application.id,
           displayName: application.displayName,
           email: application.email ?? '',
+          rawEmail: application.email ?? '',
           netIncomeMonthly: Number(application.netIncomeMonthly),
           householdSize: application.householdSize,
           contractType: (application.contractType as ContractType) ?? 'other',

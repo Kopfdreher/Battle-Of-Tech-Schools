@@ -96,21 +96,29 @@ export function resolveDisplayName(
   return realisticNameFromSeed(seed || current || 'applicant')
 }
 
-/** Keep the real display name; mask email. Free-text previews are cleared. */
+/** Keep the real display name; mask email. Free-text previews are cleared. Preserves unmasked rawEmail. */
 export function anonymizeApplicantRecord<
   T extends {
     id?: string
     fingerprint?: string
     displayName: string
     email?: string
+    rawEmail?: string
     messagePreview?: string
   },
 >(item: T): T {
   const seed = item.fingerprint || item.id || item.email || item.displayName || 'applicant'
+  const rawEmail =
+    item.rawEmail ||
+    (item.email && !item.email.includes('•••') && item.email.includes('@')
+      ? item.email
+      : undefined)
+
   return {
     ...item,
     displayName: resolveDisplayName(item.displayName, seed),
     email: item.email ? maskEmail(item.email) : item.email,
+    rawEmail,
     messagePreview: '',
   }
 }

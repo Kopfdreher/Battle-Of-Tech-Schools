@@ -25,7 +25,7 @@ export async function importApplicationsAction(drafts: Omit<ApplicantDraft, 'id'
   const applications = drafts.map(draft => ({
     userId: session.user.id, // Ensure every application is linked to the logged in user
     displayName: draft.displayName,
-    email: draft.email || null,
+    email: draft.rawEmail || draft.email || null,
     netIncomeMonthly: draft.netIncomeMonthly,
     contractType: draft.contractType,
     employmentType: draft.employmentType,
