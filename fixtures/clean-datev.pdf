@@ -6,49 +6,242 @@ endobj
 << /Type /Pages /Kids [3 0 R] /Count 1 >>
 endobj
 3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 5 0 R /Resources << /Font << /F1 4 0 R >> >> >>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 5 0 R /Resources << /Font << /F1 4 0 R /F2 7 0 R /F3 8 0 R >> >> >>
 endobj
 4 0 obj
-<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
 endobj
 5 0 obj
-<< /Length 348 >>
+<< /Length 8072 >>
 stream
-BT
-/F1 12 Tf
-50 780 Td
-(GEHALTSABRECHNUNG / OFFICIAL PAYSLIP) Tj
-0 -18 Td
-(Employer: Nordbahn Tech Solutions GmbH) Tj
-0 -18 Td
-(Period: August 2026) Tj
-0 -18 Td
-(Employee: Anna Berger) Tj
-0 -18 Td
-(Gross: EUR 6400.00) Tj
-0 -18 Td
-(Tax/SV: EUR 1200.00) Tj
-0 -18 Td
-(Net: EUR 5200.00) Tj
-0 -18 Td
-(Standard payroll PDF generated via DATEV API.) Tj
-ET
+q
+0.50 w
+0.000 0.550 0.270 rg
+36.00 774.00 62.00 26.00 re
+f
+Q
+q 1.000 1.000 1.000 rg BT /F2 13 Tf 44.00 782.00 Td (DATEV) Tj ET Q
+q 0.120 0.160 0.220 rg BT /F2 11 Tf 108.00 790.00 Td (Lohn und Gehalt pro) Tj ET Q
+q 0.450 0.500 0.580 rg BT /F1 8 Tf 108.00 778.00 Td (Entgeltabrechnung nach \247 108 Abs. 3 Satz 1 GewO) Tj ET Q
+q 0.120 0.160 0.220 rg BT /F2 9.5 Tf 389.00 790.00 Td (Abrechnungsmonat: August 2026) Tj ET Q
+q 0.450 0.500 0.580 rg BT /F1 8 Tf 389.00 778.00 Td (Erstellt am 28.08.2026 \267 Originaldruck) Tj ET Q
+q
+0.75 w
+0.800 0.840 0.880 RG
+36.00 764.00 m 559.00 764.00 l S Q
+q
+0.50 w
+0.980 0.985 0.990 rg
+0.850 0.880 0.920 RG
+36.00 665.00 255.50 92.00 re
+B
+Q
+q
+0.50 w
+0.920 0.940 0.960 rg
+36.00 741.00 255.50 16.00 re
+f
+Q
+q 0.300 0.350 0.420 rg BT /F2 7.5 Tf 44.00 745.50 Td (1. ARBEITGEBER \(FIRMA\)) Tj ET Q
+q 0.100 0.140 0.200 rg BT /F2 9.5 Tf 44.00 725.00 Td (Nordbahn Tech Solutions GmbH) Tj ET Q
+q 0.350 0.400 0.480 rg BT /F1 8 Tf 44.00 711.00 Td (Brunnenstra\337e 128, 10115 Berlin) Tj ET Q
+q 0.350 0.400 0.480 rg BT /F1 8 Tf 44.00 697.00 Td (Betriebsnummer: B-82910421) Tj ET Q
+q 0.350 0.400 0.480 rg BT /F1 8 Tf 44.00 683.00 Td (Steuer-Nr: 30/284/10492 \267 Betriebsst\344tte Berlin) Tj ET Q
+q 0.500 0.550 0.620 rg BT /F3 7 Tf 44.00 671.00 Td (Zust\344ndige BG: VBG Hamburg / Berlin) Tj ET Q
+q
+0.50 w
+0.980 0.985 0.990 rg
+0.850 0.880 0.920 RG
+303.50 665.00 255.50 92.00 re
+B
+Q
+q
+0.50 w
+0.920 0.940 0.960 rg
+303.50 741.00 255.50 16.00 re
+f
+Q
+q 0.300 0.350 0.420 rg BT /F2 7.5 Tf 311.50 745.50 Td (2. ARBEITNEHMER-STAMMDATEN) Tj ET Q
+q 0.100 0.140 0.200 rg BT /F2 10.5 Tf 311.50 725.00 Td (Anna Berger) Tj ET Q
+q 0.350 0.400 0.480 rg BT /F1 8 Tf 311.50 711.00 Td (Personal-Nr: 004128 \267 Eintritt: 01.03.2021) Tj ET Q
+q 0.350 0.400 0.480 rg BT /F1 8 Tf 311.50 697.00 Td (SV-Nr: 12 140591 B 042 \267 Steuer-ID: 83 910 248 102) Tj ET Q
+q 0.350 0.400 0.480 rg BT /F1 8 Tf 311.50 683.00 Td (Steuerklasse: I / 1,000 \267 Krankenkasse: Techniker Krankenkasse \(TK\)) Tj ET Q
+q 0.450 0.500 0.580 rg BT /F1 7.5 Tf 311.50 671.00 Td (Employee: Anna Berger) Tj ET Q
+q
+0.50 w
+0.220 0.270 0.340 rg
+36.00 560.00 523.00 18.00 re
+f
+Q
+q 1.000 1.000 1.000 rg BT /F2 8 Tf 44.00 565.50 Td (Lohnart) Tj ET Q
+q 1.000 1.000 1.000 rg BT /F2 8 Tf 101.00 565.50 Td (Bezeichnung der Bez\374ge) Tj ET Q
+q 1.000 1.000 1.000 rg BT /F2 8 Tf 296.00 565.50 Td (Menge / Einheit) Tj ET Q
+q 1.000 1.000 1.000 rg BT /F2 8 Tf 406.00 565.50 Td (Satz) Tj ET Q
+q 1.000 1.000 1.000 rg BT /F2 8 Tf 479.00 565.50 Td (Betrag \(EUR\)) Tj ET Q
+q
+0.50 w
+0.990 0.990 1.000 rg
+0.900 0.920 0.950 RG
+36.00 540.00 523.00 20.00 re
+B
+Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 44.00 546.00 Td (1000) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F2 8.5 Tf 101.00 546.00 Td (Gehalt / Monatsfestbezug) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 296.00 546.00 Td (168,00 Std) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 406.00 546.00 Td (Monat) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F2 8.5 Tf 479.00 546.00 Td (6351.00) Tj ET Q
+q
+0.50 w
+0.960 0.970 0.980 rg
+0.900 0.920 0.950 RG
+36.00 520.00 523.00 20.00 re
+B
+Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 44.00 526.00 Td (2150) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8.5 Tf 101.00 526.00 Td (Fahrtkostenzuschuss \(Deutschlandticket \326PNV\)) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 296.00 526.00 Td (1,00 Monat) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 406.00 526.00 Td (49,00) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8.5 Tf 479.00 526.00 Td (49.00) Tj ET Q
+q
+0.75 w
+0.920 0.940 0.970 rg
+0.800 0.840 0.890 RG
+36.00 500.00 523.00 20.00 re
+B
+Q
+q 0.150 0.200 0.280 rg BT /F2 9 Tf 44.00 506.00 Td (Gesamtbrutto:) Tj ET Q
+q 0.400 0.450 0.520 rg BT /F1 8 Tf 116.00 506.00 Td (Gross: EUR 6400.00) Tj ET Q
+q 0.120 0.160 0.240 rg BT /F2 9.5 Tf 469.00 506.00 Td (EUR 6400.00) Tj ET Q
+q
+0.50 w
+0.220 0.270 0.340 rg
+36.00 475.00 523.00 18.00 re
+f
+Q
+q 1.000 1.000 1.000 rg BT /F2 8 Tf 44.00 480.50 Td (Gesetzliche Abz\374ge \(Steuern / Sozialversicherungsbeitr\344ge\)) Tj ET Q
+q 1.000 1.000 1.000 rg BT /F2 8 Tf 346.00 480.50 Td (Basis) Tj ET Q
+q 1.000 1.000 1.000 rg BT /F2 8 Tf 426.00 480.50 Td (Beitragssatz) Tj ET Q
+q 1.000 1.000 1.000 rg BT /F2 8 Tf 479.00 480.50 Td (Abzug \(EUR\)) Tj ET Q
+q
+0.50 w
+0.990 0.990 1.000 rg
+0.900 0.920 0.950 RG
+36.00 457.00 523.00 18.00 re
+B
+Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 44.00 462.00 Td (Lohnsteuer \(Steuerklasse I\)) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 346.00 462.00 Td (EUR 6400.00) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 426.00 462.00 Td (EStG Tab.) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 479.00 462.00 Td (-624.00) Tj ET Q
+q
+0.50 w
+0.960 0.970 0.980 rg
+0.900 0.920 0.950 RG
+36.00 439.00 523.00 18.00 re
+B
+Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 44.00 444.00 Td (Solidarit\344tszuschlag) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 346.00 444.00 Td (EUR 0,00) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 426.00 444.00 Td (0,0 %) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 479.00 444.00 Td (-0.00) Tj ET Q
+q
+0.50 w
+0.990 0.990 1.000 rg
+0.900 0.920 0.950 RG
+36.00 421.00 523.00 18.00 re
+B
+Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 44.00 426.00 Td (Krankenversicherung \(KV AN-Anteil\)) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 346.00 426.00 Td (EUR 6400.00) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 426.00 426.00 Td (7,3% + 1,7%) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 479.00 426.00 Td (-252.00) Tj ET Q
+q
+0.50 w
+0.960 0.970 0.980 rg
+0.900 0.920 0.950 RG
+36.00 403.00 523.00 18.00 re
+B
+Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 44.00 408.00 Td (Rentenversicherung \(RV AN-Anteil\)) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 346.00 408.00 Td (EUR 6400.00) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 426.00 408.00 Td (9,3 %) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 479.00 408.00 Td (-228.00) Tj ET Q
+q
+0.50 w
+0.990 0.990 1.000 rg
+0.900 0.920 0.950 RG
+36.00 385.00 523.00 18.00 re
+B
+Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 44.00 390.00 Td (Arbeitslosenversicherung \(AV AN\)) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 346.00 390.00 Td (EUR 6400.00) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 426.00 390.00 Td (1,3 %) Tj ET Q
+q 0.150 0.150 0.150 rg BT /F1 8 Tf 479.00 390.00 Td (-96.00) Tj ET Q
+q
+0.75 w
+0.920 0.940 0.970 rg
+0.800 0.840 0.890 RG
+36.00 367.00 523.00 20.00 re
+B
+Q
+q 0.150 0.200 0.280 rg BT /F2 9 Tf 44.00 372.50 Td (Gesamtabz\374ge \(Steuer + SV\):) Tj ET Q
+q 0.400 0.450 0.520 rg BT /F1 8 Tf 191.00 372.50 Td (Tax/SV: EUR 1200.00) Tj ET Q
+q 0.700 0.150 0.150 rg BT /F2 9.5 Tf 464.00 372.50 Td (- EUR 1200.00) Tj ET Q
+q
+1.20 w
+0.960 0.985 0.960 rg
+0.200 0.650 0.300 RG
+36.00 285.00 523.00 72.00 re
+B
+Q
+q 0.300 0.350 0.400 rg BT /F2 8.5 Tf 50.00 337.00 Td (Zusammenfassung:) Tj ET Q
+q 0.250 0.300 0.380 rg BT /F1 8 Tf 50.00 323.00 Td (Gesamt-Brutto: EUR 6400.00) Tj ET Q
+q 0.650 0.200 0.200 rg BT /F1 8 Tf 50.00 309.00 Td (Gesetzliche Abz\374ge: - EUR 1200.00) Tj ET Q
+q 0.450 0.500 0.580 rg BT /F1 7.5 Tf 50.00 295.00 Td (Rechnerisches Netto: EUR 5200.00) Tj ET Q
+q 0.150 0.400 0.200 rg BT /F2 8.5 Tf 329.00 333.00 Td (AUSZAHLUNGSBETRAG \(NETTOVERDIENST\)) Tj ET Q
+q 0.080 0.480 0.220 rg BT /F2 19 Tf 329.00 307.00 Td (EUR 5200.00) Tj ET Q
+q 0.400 0.450 0.520 rg BT /F1 7.5 Tf 329.00 293.00 Td (Net: EUR 5200.00 \(Auszahlung\)) Tj ET Q
+q
+0.50 w
+0.970 0.980 0.990 rg
+0.880 0.900 0.930 RG
+36.00 259.00 523.00 22.00 re
+B
+Q
+q 0.300 0.350 0.420 rg BT /F1 8 Tf 44.00 266.00 Td (Bankverbindung: \334berweisung zum 31.08.2026 auf Girokonto DE44 1001 0010 """" """" 82) Tj ET Q
+q 0.300 0.350 0.420 rg BT /F2 8 Tf 379.00 266.00 Td (Berliner Sparkasse \267 BIC: BELADEBEXXX) Tj ET Q
+q
+0.50 w
+[3 2] 0 d
+0.750 0.800 0.850 RG
+36.00 180.00 m 559.00 180.00 l S Q
+q 0.350 0.400 0.480 rg BT /F2 7.5 Tf 36.00 168.00 Td (HINWEIS ZUR DOKUMENTENECHTHEIT & DATENSCHUTZ \(\247 108 GEWO / AGG / DSGVO\)) Tj ET Q
+q 0.450 0.500 0.580 rg BT /F1 7 Tf 36.00 157.00 Td (Dieser Nachweis wurde maschinell erstellt und zertifiziert. G\374ltig ohne Unterschrift und Firmenstempel.) Tj ET Q
+q 0.550 0.600 0.680 rg BT /F1 6.8 Tf 36.00 146.00 Td (DATEV Lohn und Gehalt v14.2 \267 Pr\374fziffer-Hash: SHA256:476568616c74736162726563686e756e \267 Seite 1 von 1) Tj ET Q
 endstream
 endobj
 6 0 obj
-<< /Title (Gehaltsabrechnung Anna Berger) /Producer (DATEV Lohn und Gehalt 14.2) /Creator (MietMatcher Payslip Engine) >>
+<< /Title (Gehaltsabrechnung Anna Berger) /Producer (DATEV Lohn und Gehalt 14.2) /Creator (DATEV Lohn und Gehalt) >>
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+8 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>
 endobj
 xref
-0 7
+0 9
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
 0000000115 00000 n 
-0000000241 00000 n 
-0000000311 00000 n 
-0000000710 00000 n 
+0000000261 00000 n 
+0000000358 00000 n 
+0000008482 00000 n 
+0000008614 00000 n 
+0000008716 00000 n 
 trailer
-<< /Size 7 /Root 1 0 R /Info 6 0 R >>
+<< /Size 9 /Root 1 0 R /Info 6 0 R >>
 startxref
-847
+8821
 %%EOF
