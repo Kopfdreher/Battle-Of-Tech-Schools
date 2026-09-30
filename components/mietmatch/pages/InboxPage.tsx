@@ -32,7 +32,9 @@ export function InboxPage() {
     if (user && flat && !syncAttempted.current) {
       syncAttempted.current = true
       syncApplicationsAction(flat.id, user.email).then(() => {
-        router.refresh()
+        setTimeout(() => {
+          router.refresh()
+        }, 5000)
       })
     }
   }, [user, flat, router])
@@ -74,14 +76,15 @@ export function InboxPage() {
     setCsvError(null)
     setCsvMessage(null)
     const reader = new FileReader()
-    reader.onload = () => {
+    reader.onload = async () => {
       const parsed = parseApplicantCsv(String(reader.result ?? ''))
       if (parsed.drafts.length === 0) {
         setCsvError(parsed.errors[0] ?? t('import.csv.error'))
         return
       }
-      const count = importApplicants(parsed.drafts, applicants.length > 0 ? 'append' : 'replace')
+      const count = await importApplicants(parsed.drafts, applicants.length > 0 ? 'append' : 'replace')
       setCsvMessage(t('import.csv.imported', { count, skipped: parsed.errors.length }))
+      router.refresh()
     }
     reader.onerror = () => setCsvError(t('import.csv.readError'))
     reader.readAsText(file)
