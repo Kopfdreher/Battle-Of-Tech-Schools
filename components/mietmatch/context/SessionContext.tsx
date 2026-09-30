@@ -7,6 +7,7 @@ import { defaultRequirements, sanitizeRequirements } from '../data/requirements'
 import { authenticate, register } from '../lib/auth'
 import { buildDemoCsv, parseApplicantCsv } from '../lib/csv'
 import { authClient } from '@/lib/auth-client'
+import { createListingAction } from '@/app/actions/listings'
 import {
   applicantsKey,
   flatKey,
@@ -224,10 +225,27 @@ export function SessionProvider({
   const signup = useCallback(async (name: string, email: string, password: string) => {
     const user = await register(name, email, password)
     writeJson(onboardingKey(user.id), false)
+    const sessionRes = await authClient.getSession()
+    const sessionUser = sessionRes.data?.user
+    if (sessionUser) {
+      setState((current) => ({
+        ...current,
+        user: { id: sessionUser.id, name: sessionUser.name, email: sessionUser.email },
+        onboardingDone: false,
+      }))
+    }
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
     await authenticate(email, password)
+    const sessionRes = await authClient.getSession()
+    const sessionUser = sessionRes.data?.user
+    if (sessionUser) {
+      setState((current) => ({
+        ...current,
+        user: { id: sessionUser.id, name: sessionUser.name, email: sessionUser.email },
+      }))
+    }
   }, [])
 
   const logout = useCallback(async () => {
@@ -248,11 +266,28 @@ export function SessionProvider({
     setState((current) => ({ ...current, requirements }))
   }, [])
 
-  const setFlat = useCallback((draft: Omit<LandlordFlat, 'id' | 'addedAt'>) => {
+  const setFlat = useCallback(async (draft: Omit<LandlordFlat, 'id' | 'addedAt'>) => {
+    let id = `flat-${Date.now().toString(36)}`;
+    let addedAt = new Date().toISOString();
+    try {
+      const listing = await createListingAction({
+        address: draft.address,
+        rentAmount: draft.rentWarm,
+        rooms: draft.rooms,
+        title: draft.sourceNote || draft.address,
+        district: draft.district,
+        bezirk: draft.bezirk
+      });
+      id = listing.id;
+      addedAt = listing.createdAt;
+    } catch (e) {
+      console.error("Failed to create listing in DB, falling back to local ID", e);
+    }
+    
     const flat: LandlordFlat = {
       ...draft,
-      id: `flat-${Date.now().toString(36)}`,
-      addedAt: new Date().toISOString(),
+      id,
+      addedAt,
     }
     setState((current) => ({ ...current, flat, invitedIds: [], invitations: [], marks: {} }))
     return flat

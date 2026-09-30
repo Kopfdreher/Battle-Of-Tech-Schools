@@ -53,18 +53,22 @@ function preview(message: string) {
   return `${clean.slice(0, 177)}…`
 }
 
-export async function loadBoard(): Promise<Board | null> {
+export async function loadBoard(userId?: string): Promise<Board | null> {
   if (!process.env.DATABASE_URL) return null
+  if (!userId) return null
 
   try {
     const db = getPrisma()
     const listings = await db.listing.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
-      include: {
-        applications: { orderBy: { createdAt: 'desc' } },
-      },
     })
     if (listings.length === 0) return null
+
+    const applications = await db.application.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    })
 
     return {
       sets: listings.map((listing) => ({
@@ -82,7 +86,7 @@ export async function loadBoard(): Promise<Board | null> {
           berlin: quietBerlin,
           sourceNote: listing.title,
         },
-        applicants: listing.applications.map((application) => ({
+        applicants: applications.map((application) => ({
           id: application.id,
           displayName: application.displayName,
           email: application.email ?? '',
