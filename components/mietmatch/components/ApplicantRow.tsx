@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from '@/components/mietmatch/nav'
+import { AuthenticityBadge } from '@/components/authenticity/authenticity-badge'
 import { useLocale } from '../context/LocaleContext'
 import { useSession, type ApplicantMark } from '../context/session'
 import { applicantCode } from '../lib/anonymize'
@@ -107,7 +108,18 @@ export function ApplicantRow({
             {number}
           </span>
           <span className="invite-copy">
-            <strong>{alias}</strong>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <strong>{alias}</strong>
+              <AuthenticityBadge
+                applicant={{
+                  id: applicant.id,
+                  applicantName: applicant.displayName,
+                  income: applicant.netIncomeMonthly,
+                  hasPermanentContract: applicant.contractType === 'permanent',
+                }}
+                size="sm"
+              />
+            </span>
             <small>
               {peopleLabel} · {applicant.contractType} · {matchLabel}
             </small>

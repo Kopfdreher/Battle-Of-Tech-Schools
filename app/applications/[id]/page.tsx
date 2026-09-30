@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AuthenticityBadge } from "@/components/authenticity/authenticity-badge";
+import { AuthenticityCard } from "@/components/authenticity/authenticity-card";
 import { EvaluateButton } from "@/components/evaluate-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -72,9 +74,19 @@ export default async function ApplicationPage({
 
       <header className="flex flex-col gap-2">
         <p className="text-sm text-zinc-500">{listing.address}</p>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {application.applicantName}
-        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {application.applicantName}
+          </h1>
+          <AuthenticityBadge
+            applicant={{
+              id: application.id,
+              applicantName: application.applicantName,
+              income: Number(application.income),
+              hasPermanentContract: application.hasPermanentContract,
+            }}
+          />
+        </div>
         <p className="text-sm capitalize text-zinc-600">
           Status: {application.status}
         </p>
@@ -95,6 +107,15 @@ export default async function ApplicationPage({
           </Card>
         ))}
       </section>
+
+      <AuthenticityCard
+        applicant={{
+          id: application.id,
+          applicantName: application.applicantName,
+          income: Number(application.income),
+          hasPermanentContract: application.hasPermanentContract,
+        }}
+      />
 
       <Card>
         <CardHeader>
