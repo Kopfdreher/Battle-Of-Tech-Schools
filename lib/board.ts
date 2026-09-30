@@ -1,4 +1,5 @@
-import type { Applicant, BerlinFacts, LandlordFlat } from '@/components/mietmatch/types'
+import type { Applicant, BerlinFacts, LandlordFlat, ContractType, EmploymentType } from '@/components/mietmatch/types'
+import { applicantCode } from '@/components/mietmatch/lib/anonymize'
 import { getPrisma } from '@/lib/db'
 
 export type BoardSet = {
@@ -87,8 +88,8 @@ export async function loadBoard(): Promise<Board | null> {
           email: application.email ?? '',
           netIncomeMonthly: Number(application.netIncomeMonthly),
           householdSize: application.householdSize,
-          contractType: application.contractType ?? 'other',
-          employmentType: application.employmentType ?? 'other',
+          contractType: (application.contractType as ContractType) ?? 'other',
+          employmentType: (application.employmentType as EmploymentType) ?? 'other',
           hasArrearsLetter: application.hasArrearsLetter,
           hasIncomeProof: application.hasIncomeProof ?? false,
           hasEmploymentProof: application.hasEmploymentProof ?? false,

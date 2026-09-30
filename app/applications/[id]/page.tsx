@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AuthenticityBadge } from "@/components/authenticity/authenticity-badge";
+import { AuthenticityCard } from "@/components/authenticity/authenticity-card";
 import { EvaluateButton } from "@/components/evaluate-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -96,6 +98,15 @@ export default async function ApplicationPage({
         ))}
       </section>
 
+      <AuthenticityCard
+        applicant={{
+          id: application.id,
+          applicantName: application.displayName,
+          income: Number(application.netIncomeMonthly),
+          hasPermanentContract: application.contractType === 'permanent',
+        }}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>Evaluation score</CardTitle>
@@ -115,18 +126,15 @@ export default async function ApplicationPage({
           <CardTitle>Application</CardTitle>
           <CardDescription>
             {formatEuro(application.netIncomeMonthly)} net / month · household{" "}
-            {application.householdSize} · rent {formatEuro(listing.rentAmount)} ·{" "}
-            {listing.rooms} rooms
+            {application.householdSize} · rent {formatEuro(listing.rentAmount)}{" "}
+            · {listing.rooms} rooms
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 pt-0">
           <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
             <Fact label="Contract" value={application.contractType} />
             <Fact label="Schufa" value={application.hasSchufa} />
-            <Fact
-              label="Arrears Letter"
-              value={application.hasArrearsLetter}
-            />
+            <Fact label="Arrears Letter" value={application.hasArrearsLetter} />
           </dl>
           <p className="whitespace-pre-wrap text-sm leading-6">
             {application.messagePreview}

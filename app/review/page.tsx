@@ -1,6 +1,7 @@
 import type { Application, Listing } from "@prisma/client";
 import Link from "next/link";
 
+import { AuthenticityBadge } from "@/components/authenticity/authenticity-badge";
 import { SeedButton } from "@/components/seed-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -112,6 +113,7 @@ export default async function HomePage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Applicant</TableHead>
+                    <TableHead>Authenticity</TableHead>
                     <TableHead>Affordability</TableHead>
                     <TableHead>Contract security</TableHead>
                     <TableHead>Fit</TableHead>
@@ -144,6 +146,16 @@ export default async function HomePage({
                             {formatEuro(application.netIncomeMonthly)} / month ·{" "}
                             {application.householdSize} people
                           </p>
+                        </TableCell>
+                        <TableCell>
+                          <AuthenticityBadge
+                            applicant={{
+                              id: application.id,
+                              applicantName: application.displayName,
+                              income: Number(application.netIncomeMonthly),
+                              hasPermanentContract: application.contractType === 'permanent',
+                            }}
+                          />
                         </TableCell>
                         <TableCell>
                           <Badge variant={money.level}>{money.label}</Badge>

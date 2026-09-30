@@ -1,12 +1,16 @@
 'use client'
 
 import { Link, useNavigate, useParams } from '@/components/mietmatch/nav'
+import { AuthenticityBadge } from '@/components/authenticity/authenticity-badge'
+import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
+import { applicantCode } from '../lib/anonymize'
 import { evaluateApplicant, matchTone } from '../lib/match'
 
 export function ListingPage() {
   const { id } = useParams({ from: '/_app/applicants/$id' })
   const navigate = useNavigate()
+  const { t } = useLocale()
   const { flat, applicants, requirements, removeApplicant, marks, setApplicantMark } = useSession()
   const applicant = applicants.find((item) => item.id === id)
 
@@ -35,6 +39,9 @@ export function ListingPage() {
   const verdict = evaluateApplicant(applicant, flat, requirements, applicants)
   const tone = matchTone(verdict)
   const mark = marks[applicant.id] ?? null
+  const alias = t('applicant.alias', {
+    code: applicantCode(applicant.fingerprint || applicant.id),
+  })
   const docs = [
     { label: 'No-arrears letter', ok: applicant.hasArrearsLetter },
     { label: 'Income proof', ok: applicant.hasIncomeProof },
@@ -52,7 +59,17 @@ export function ListingPage() {
           <p className="kicker">
             {tone === 'good' ? 'Strong match' : 'Weak match'} · {verdict.matchRate}%
           </p>
-          <h1>{applicant.displayName}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h1>{alias}</h1>
+            <AuthenticityBadge
+              applicant={{
+                id: applicant.id,
+                applicantName: applicant.displayName,
+                income: applicant.netIncomeMonthly,
+                hasPermanentContract: applicant.contractType === 'permanent',
+              }}
+            />
+          </div>
           <p className="lede">
             €{applicant.netIncomeMonthly} net / month · {applicant.householdSize} in household ·{' '}
             {applicant.contractType} contract

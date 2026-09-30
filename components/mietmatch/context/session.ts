@@ -7,6 +7,7 @@ export type ApplicantMark = 'like' | 'unsure'
 export type SessionValue = {
   ready: boolean
   user: User | null
+  onboardingDone: boolean
   requirements: Requirements
   flat: LandlordFlat | null
   applicants: Applicant[]
@@ -17,6 +18,7 @@ export type SessionValue = {
   signup: (name: string, email: string, password: string) => Promise<void>
   login: (email: string, password: string) => Promise<void>
   logout: () => void
+  completeOnboarding: () => void
   updateRequirements: (requirements: Requirements) => void
   setFlat: (draft: Omit<LandlordFlat, 'id' | 'addedAt'>) => LandlordFlat
   clearFlat: () => void

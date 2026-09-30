@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from '@/components/mietmatch/nav'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
+import { applicantCode } from '../lib/anonymize'
 import type { ListGroup } from './ApplicantRow'
 import type { Verdict } from '../lib/match'
 import type { Applicant, LandlordFlat } from '../types'
@@ -167,7 +168,9 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
             count: invitees.length,
             date,
             time,
-            names: invitees.map((row) => row.applicant.displayName),
+            names: invitees.map((row) =>
+              t('applicant.alias', { code: applicantCode(row.applicant.fingerprint || row.applicant.id) }),
+            ),
             fromRank: invitees[0]!.number,
             toRank: invitees[invitees.length - 1]!.number,
             group,

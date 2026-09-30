@@ -23,7 +23,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Mietmatch · Landlord shortlist",
+  title: "BesichtiGo · Landlord shortlist",
   description: "Berlin landlord shortlist, with listings and applications from the database",
 };
 

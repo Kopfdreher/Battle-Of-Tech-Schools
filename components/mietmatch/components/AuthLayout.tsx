@@ -34,7 +34,6 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           </ol>
           <p className="auth-foot">{t('auth.foot')}</p>
         </div>
-        <img className="auth-mascot" src="/mascot.png" alt={t('mascot.alt')} />
       </section>
       <section className="auth-panel">
         <div className="auth-card panel">{children}</div>
