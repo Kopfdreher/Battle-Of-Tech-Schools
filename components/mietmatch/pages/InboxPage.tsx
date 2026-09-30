@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link } from '@/components/mietmatch/nav'
 import { syncApplicationsAction } from '@/app/actions/n8n'
 import { ApplicantRow, type ListGroup } from '../components/ApplicantRow'
@@ -10,13 +10,17 @@ import { InvitePanel } from '../components/InvitePanel'
 import { NameVisibilityToggle } from '../components/NameVisibilityToggle'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
+import { parseApplicantCsv } from '../lib/csv'
 import { compareApplicants, evaluateApplicant, matchTone } from '../lib/match'
 
 type MatchFilter = 'all' | 'strong' | 'weak' | 'duplicates'
 
 export function InboxPage() {
-  const { user, requirements, flat, applicants, marks, removeApplicant } = useSession()
+  const { user, requirements, flat, applicants, marks, removeApplicant, importApplicants } =
+    useSession()
   const { t } = useLocale()
+  const csvInputId = useId()
+  const csvInputRef = useRef<HTMLInputElement>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [listGroup, setListGroup] = useState<ListGroup>('all')
   const [filter, setFilter] = useState<MatchFilter>('all')
@@ -32,6 +36,8 @@ export function InboxPage() {
       })
     }
   }, [user, flat, router])
+  const [csvMessage, setCsvMessage] = useState<string | null>(null)
+  const [csvError, setCsvError] = useState<string | null>(null)
 
   const ranked = useMemo(() => {
     if (!flat) return []
@@ -62,6 +68,24 @@ export function InboxPage() {
     () => ranked.filter((row) => matchTone(row.verdict) === 'good').length,
     [ranked],
   )
+
+  function onCsvFile(file: File | null) {
+    if (!file) return
+    setCsvError(null)
+    setCsvMessage(null)
+    const reader = new FileReader()
+    reader.onload = () => {
+      const parsed = parseApplicantCsv(String(reader.result ?? ''))
+      if (parsed.drafts.length === 0) {
+        setCsvError(parsed.errors[0] ?? t('import.csv.error'))
+        return
+      }
+      const count = importApplicants(parsed.drafts, applicants.length > 0 ? 'append' : 'replace')
+      setCsvMessage(t('import.csv.imported', { count, skipped: parsed.errors.length }))
+    }
+    reader.onerror = () => setCsvError(t('import.csv.readError'))
+    reader.readAsText(file)
+  }
 
   return (
     <div className="dashboard">
@@ -98,7 +122,8 @@ export function InboxPage() {
                 <p className="kicker">{t('inbox.flat')}</p>
                 <strong>{flat.address}</strong>
                 <span>
-                  €{flat.rentWarm} warm · {flat.rooms} rooms{flat.sqm ? ` · ${flat.sqm} m²` : ''} · {flat.district}
+                  €{flat.rentWarm} warm · {flat.rooms} rooms{flat.sqm ? ` · ${flat.sqm} m²` : ''} ·{' '}
+                  {flat.district}
                 </span>
               </div>
               <Link className="text-button" to="/address">
@@ -106,11 +131,35 @@ export function InboxPage() {
               </Link>
             </div>
             <div className="board-toolbar-actions">
-              <Link className="btn box-btn" to="/import">
+              <input
+                ref={csvInputRef}
+                id={csvInputId}
+                className="sr-only"
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(event) => {
+                  onCsvFile(event.target.files?.[0] ?? null)
+                  event.target.value = ''
+                }}
+              />
+              <button
+                type="button"
+                className="btn box-btn primary"
+                onClick={() => csvInputRef.current?.click()}
+              >
+                {t('inbox.uploadCsv')}
+              </button>
+              <Link className="btn box-btn primary" to="/import">
                 {t('inbox.getApplicants')}
               </Link>
             </div>
           </header>
+          {csvError ? (
+            <p className="error" role="alert">
+              {csvError}
+            </p>
+          ) : null}
+          {csvMessage ? <p className="hint import-ok">{csvMessage}</p> : null}
 
           <div className="shortlist-grid">
             <CriteriaBoard />
