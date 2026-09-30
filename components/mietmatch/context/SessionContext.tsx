@@ -5,6 +5,7 @@ import { defaultRequirements, sanitizeRequirements } from '../data/requirements'
 import { authenticate, register } from '../lib/auth'
 import { authClient } from '@/lib/auth-client'
 import { createListingAction } from '@/app/actions/listings'
+import { importApplicationsAction } from '@/app/actions/applications'
 import {
   applicantsKey,
   flatKey,
@@ -338,7 +339,14 @@ export function SessionProvider({
   }, [])
 
   const importApplicants = useCallback(
-    (drafts: Omit<Applicant, 'id' | 'appliedAt'>[], mode: 'replace' | 'append' = 'replace') => {
+    async (drafts: Omit<Applicant, 'id' | 'appliedAt'>[], mode: 'replace' | 'append' = 'replace') => {
+      let dbCount = drafts.length;
+      try {
+        dbCount = await importApplicationsAction(drafts, mode);
+      } catch (e) {
+        console.error("Failed to insert applicants into database", e);
+      }
+
       const stamped = drafts.map((item, index) => {
         const id = `imp-${Date.now().toString(36)}-${index}-${Math.random().toString(36).slice(2, 6)}`
         return anonymizeApplicant({
@@ -354,7 +362,7 @@ export function SessionProvider({
         invitations: mode === 'replace' ? [] : current.invitations,
         marks: mode === 'replace' ? {} : current.marks,
       }))
-      return stamped.length
+      return dbCount
     },
     [],
   )

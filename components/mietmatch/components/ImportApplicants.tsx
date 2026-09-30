@@ -1,15 +1,18 @@
 'use client'
 
 import { useId, useRef, useState, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import { Link } from '@/components/mietmatch/nav'
+import { syncApplicationsAction } from '@/app/actions/n8n'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
 import { CSV_TEMPLATE, parseApplicantCsv } from '../lib/csv'
 import type { MailboxProvider } from '../types'
 
 export function ImportApplicants() {
-  const { user, mailbox, connectMailbox, disconnectMailbox, importApplicants } = useSession()
+  const { user, mailbox, connectMailbox, disconnectMailbox, importApplicants, flat } = useSession()
   const { t } = useLocale()
+  const router = useRouter()
   const fileId = useId()
   const fileRef = useRef<HTMLInputElement>(null)
   const [mode, setMode] = useState<'replace' | 'append'>('replace')
@@ -17,7 +20,7 @@ export function ImportApplicants() {
   const [error, setError] = useState<string | null>(null)
   const [consentFor, setConsentFor] = useState<MailboxProvider | null>(null)
 
-  function applyCsv(text: string) {
+  async function applyCsv(text: string) {
     setError(null)
     setMessage(null)
     const parsed = parseApplicantCsv(text)
@@ -25,19 +28,20 @@ export function ImportApplicants() {
       setError(parsed.errors[0] ?? t('import.csv.error'))
       return
     }
-    const count = importApplicants(parsed.drafts, mode)
+    const count = await importApplicants(parsed.drafts, mode)
     setMessage(
       t('import.csv.imported', {
         count,
         skipped: parsed.errors.length,
       }),
     )
+    router.refresh()
   }
 
   function onFile(file: File | null) {
     if (!file) return
     const reader = new FileReader()
-    reader.onload = () => applyCsv(String(reader.result ?? ''))
+    reader.onload = async () => await applyCsv(String(reader.result ?? ''))
     reader.onerror = () => setError(t('import.csv.readError'))
     reader.readAsText(file)
   }
@@ -48,10 +52,20 @@ export function ImportApplicants() {
     setConsentFor(null)
   }
 
-  function startInboxScan() {
+  async function startInboxScan() {
     setError(null)
-    setMessage(null)
-    setError(t('import.scan.unavailable'))
+    setMessage(t('import.email.reading'))
+    try {
+      if (user) {
+        await syncApplicationsAction(flat?.id || '', user.email)
+        setMessage("Sync triggered successfully! Waiting for n8n to finish...")
+        await new Promise(resolve => setTimeout(resolve, 5000))
+        setMessage("Sync complete! Refreshing data...")
+        router.refresh()
+      }
+    } catch (e) {
+      setError("Failed to trigger N8n workflow")
+    }
   }
 
   function download(filename: string, content: string) {
