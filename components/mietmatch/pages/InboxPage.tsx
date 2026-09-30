@@ -1,7 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Link } from '@/components/mietmatch/nav'
+import { syncApplicationsAction } from '@/app/actions/n8n'
 import { ApplicantRow, type ListGroup } from '../components/ApplicantRow'
 import { CriteriaBoard } from '../components/CriteriaBoard'
 import { InvitePanel } from '../components/InvitePanel'
@@ -10,11 +12,26 @@ import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
 import { compareApplicants, evaluateApplicant, matchTone } from '../lib/match'
 
+type MatchFilter = 'all' | 'strong' | 'weak' | 'duplicates'
+
 export function InboxPage() {
   const { user, requirements, flat, applicants, marks, removeApplicant } = useSession()
   const { t } = useLocale()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [listGroup, setListGroup] = useState<ListGroup>('all')
+  const [filter, setFilter] = useState<MatchFilter>('all')
+  const [minPercent, setMinPercent] = useState(0)
+  const router = useRouter()
+  const syncAttempted = useRef(false)
+
+  useEffect(() => {
+    if (user && flat && !syncAttempted.current) {
+      syncAttempted.current = true
+      syncApplicationsAction(flat.id, user.email).then(() => {
+        router.refresh()
+      })
+    }
+  }, [user, flat, router])
 
   const ranked = useMemo(() => {
     if (!flat) return []

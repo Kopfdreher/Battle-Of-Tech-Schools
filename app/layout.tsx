@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { Fraunces, Geist, Outfit } from "next/font/google";
 import { MietProviders } from "@/components/mietmatch/providers";
 import { loadBoard } from "@/lib/board";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import "./globals.css";
 import "../components/mietmatch/design-tokens.css";
 import "../components/mietmatch/index.css";
@@ -35,7 +37,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const board = await loadBoard();
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+  const board = await loadBoard(session?.user?.id);
 
   return (
     <html
