@@ -74,9 +74,9 @@ export function AddressPage() {
     void navigate({ to: '/address', search: { q: next } })
   }
 
-  function onSave() {
+  async function onSave() {
     if (result.kind !== 'ready') return
-    setFlat(result.draft)
+    await setFlat(result.draft)
     void navigate({ to: '/' })
   }
 
