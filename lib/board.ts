@@ -1,5 +1,5 @@
-import type { Applicant, BerlinFacts, LandlordFlat } from '@/components/mietmatch/types'
-import { anonymizeApplicantRecord } from '@/components/mietmatch/lib/anonymize'
+import type { Applicant, BerlinFacts, LandlordFlat, ContractType, EmploymentType } from '@/components/mietmatch/types'
+import { applicantCode } from '@/components/mietmatch/lib/anonymize'
 import { getPrisma } from '@/lib/db'
 
 export type BoardSet = {
@@ -82,25 +82,23 @@ export async function loadBoard(): Promise<Board | null> {
           berlin: quietBerlin,
           sourceNote: listing.title,
         },
-          applicants: listing.applications.map((application) =>
-            anonymizeApplicantRecord({
-              id: application.id,
-              displayName: application.applicantName,
-              email: '',
-              netIncomeMonthly: Number(application.income),
-              householdSize: application.householdSize,
-              contractType: application.hasPermanentContract ? 'permanent' : 'other',
-              employmentType: application.hasPermanentContract ? 'employed' : 'other',
-              hasArrearsLetter: application.hasMietschuldenfrei,
-              hasIncomeProof: false,
-              hasEmploymentProof: false,
-              hasSchufa: application.hasSchufa,
-              smokes: false,
-              messagePreview: preview(application.rawMessage),
-              appliedAt: application.createdAt.toISOString(),
-              fingerprint: application.id,
-            }),
-          ),
+        applicants: listing.applications.map((application) => ({
+          id: application.id,
+          displayName: application.displayName,
+          email: application.email ?? '',
+          netIncomeMonthly: Number(application.netIncomeMonthly),
+          householdSize: application.householdSize,
+          contractType: (application.contractType as ContractType) ?? 'other',
+          employmentType: (application.employmentType as EmploymentType) ?? 'other',
+          hasArrearsLetter: application.hasArrearsLetter,
+          hasIncomeProof: application.hasIncomeProof ?? false,
+          hasEmploymentProof: application.hasEmploymentProof ?? false,
+          hasSchufa: application.hasSchufa,
+          smokes: application.smokes ?? false,
+          messagePreview: preview(application.messagePreview),
+          appliedAt: application.appliedAt?.toISOString() ?? application.createdAt.toISOString(),
+          fingerprint: application.fingerprint ?? application.id,
+        })),
       })),
     }
   } catch {

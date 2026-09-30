@@ -124,7 +124,7 @@ export default async function HomePage({
                 <TableBody>
                   {data.applications.map((application) => {
                     const money = affordability(
-                      Number(application.income),
+                      Number(application.netIncomeMonthly),
                       Number(data.selected!.rentAmount),
                     );
                     const contract = contractSecurity(application);
@@ -140,10 +140,10 @@ export default async function HomePage({
                             href={`/applications/${application.id}`}
                             className="font-medium underline-offset-4 hover:underline"
                           >
-                            <span className="name-blur">{application.applicantName}</span>
+                            {application.displayName}
                           </Link>
                           <p className="text-xs text-zinc-500">
-                            {formatEuro(application.income)} / month ·{" "}
+                            {formatEuro(application.netIncomeMonthly)} / month ·{" "}
                             {application.householdSize} people
                           </p>
                         </TableCell>
@@ -151,9 +151,9 @@ export default async function HomePage({
                           <AuthenticityBadge
                             applicant={{
                               id: application.id,
-                              applicantName: application.applicantName,
-                              income: Number(application.income),
-                              hasPermanentContract: application.hasPermanentContract,
+                              applicantName: application.displayName,
+                              income: Number(application.netIncomeMonthly),
+                              hasPermanentContract: application.contractType === 'permanent',
                             }}
                           />
                         </TableCell>
@@ -210,7 +210,7 @@ async function loadDashboard(listingId?: string): Promise<{
       null;
     const applicationRows = selected
       ? await db.application.findMany({
-          where: { listingId: selected.id },
+          where: { apartmentId: selected.id },
           orderBy: { createdAt: "desc" },
         })
       : [];

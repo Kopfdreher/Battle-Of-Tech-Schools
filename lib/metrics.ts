@@ -20,14 +20,14 @@ export function affordability(income: number, rent: number): Metric {
 }
 
 export function contractSecurity(application: {
-  hasPermanentContract: boolean;
+  contractType: string | null;
   hasSchufa: boolean;
-  hasMietschuldenfrei: boolean;
+  hasArrearsLetter: boolean;
 }): Metric {
   const count = [
-    application.hasPermanentContract,
+    application.contractType === "permanent",
     application.hasSchufa,
-    application.hasMietschuldenfrei,
+    application.hasArrearsLetter,
   ].filter(Boolean).length;
 
   const detail = `${count}/3 checks`;

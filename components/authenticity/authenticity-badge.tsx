@@ -70,12 +70,20 @@ export function AuthenticityBadge({
 
   return (
     <>
-      <button
-        type="button"
+      <span
+        role="button"
+        tabIndex={0}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           setIsOpen(true);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(true);
+          }
         }}
         title={`Authenticity Score: ${report.trustIndex}/100 (${style.label}) - Click to inspect`}
         className={`inline-flex items-center gap-1.5 rounded-full border font-medium transition-all select-none cursor-pointer ${
@@ -89,7 +97,7 @@ export function AuthenticityBadge({
         <span className="font-semibold tabular-nums">{report.trustIndex}</span>
         <span className="text-zinc-600">·</span>
         <span>{style.label}</span>
-      </button>
+      </span>
 
       {isOpen && (
         <InspectionModal
