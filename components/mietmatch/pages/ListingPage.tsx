@@ -1,6 +1,7 @@
 'use client'
 
 import { Link, useNavigate, useParams } from '@/components/mietmatch/nav'
+import { AuthenticityBadge } from '@/components/authenticity/authenticity-badge'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
 import { evaluateApplicant, matchTone } from '../lib/match'
@@ -56,9 +57,19 @@ export function ListingPage() {
           <p className="kicker">
             {tone === 'good' ? 'Strong match' : 'Weak match'} · {verdict.matchRate}%
           </p>
-          <h1>
-            <BlurredName as="span" name={applicant.displayName} />
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h1>
+              <BlurredName as="span" name={applicant.displayName} />
+            </h1>
+            <AuthenticityBadge
+              applicant={{
+                id: applicant.id,
+                applicantName: applicant.displayName,
+                income: applicant.netIncomeMonthly,
+                hasPermanentContract: applicant.contractType === 'permanent',
+              }}
+            />
+          </div>
           <p className="lede">
             €{applicant.netIncomeMonthly} net / month · {applicant.householdSize} in household ·{' '}
             {applicant.contractType} contract
