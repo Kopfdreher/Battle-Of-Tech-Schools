@@ -10,7 +10,7 @@ import { CRITERIA_SUGGESTIONS, DEFAULT_SELECTED } from '../data/requirements'
 import { CSV_TEMPLATE, parseApplicantCsv } from '../lib/csv'
 import type { CriterionId, MailboxProvider } from '../types'
 
-type Step = 'fit' | 'email' | 'csv'
+type Step = 'welcome' | 'fit' | 'email' | 'csv'
 
 const ONBOARD_CRITERIA = CRITERIA_SUGGESTIONS.filter((item) =>
   [
@@ -38,7 +38,7 @@ export function OnboardingPage() {
   } = useSession()
   const { t } = useLocale()
   const navigate = useNavigate()
-  const [step, setStep] = useState<Step>('fit')
+  const [step, setStep] = useState<Step>('welcome')
   const [selected, setSelected] = useState<CriterionId[]>(() =>
     requirements.selected.length > 0 ? [...requirements.selected] : [...DEFAULT_SELECTED],
   )
@@ -51,7 +51,7 @@ export function OnboardingPage() {
   if (!user) return <Navigate to="/login" />
   if (onboardingDone) return <Navigate to="/" />
 
-  const stepIndex = step === 'fit' ? 1 : step === 'email' ? 2 : 3
+  const stepIndex = step === 'fit' ? 1 : step === 'email' ? 2 : step === 'csv' ? 3 : 0
 
   function finish() {
     completeOnboarding()
@@ -122,7 +122,7 @@ export function OnboardingPage() {
   }
 
   return (
-    <div className="wizard">
+    <div className={step === 'welcome' ? 'wizard wizard-welcome' : 'wizard'}>
       <header className="wizard-top">
         <Brand />
         <div className="wizard-top-right">
@@ -131,29 +131,81 @@ export function OnboardingPage() {
         </div>
       </header>
 
-      <div className="wizard-progress wizard-progress-3" aria-label={t('onboarding.progressLabel')}>
-        <div className={stepIndex >= 1 ? 'wizard-step on' : 'wizard-step'}>
-          <span>1</span>
-          <small>{t('onboarding.progress.fit')}</small>
+      {step !== 'welcome' ? (
+        <div className="wizard-progress wizard-progress-3" aria-label={t('onboarding.progressLabel')}>
+          <div className={stepIndex >= 1 ? 'wizard-step on' : 'wizard-step'}>
+            <span>1</span>
+            <small>{t('onboarding.progress.fit')}</small>
+          </div>
+          <div className="wizard-rail" aria-hidden="true">
+            <i style={{ width: stepIndex >= 2 ? '100%' : '0%' }} />
+          </div>
+          <div className={stepIndex >= 2 ? 'wizard-step on' : 'wizard-step'}>
+            <span>2</span>
+            <small>{t('onboarding.progress.email')}</small>
+          </div>
+          <div className="wizard-rail" aria-hidden="true">
+            <i style={{ width: stepIndex >= 3 ? '100%' : '0%' }} />
+          </div>
+          <div className={stepIndex >= 3 ? 'wizard-step on' : 'wizard-step'}>
+            <span>3</span>
+            <small>{t('onboarding.progress.csv')}</small>
+          </div>
         </div>
-        <div className="wizard-rail" aria-hidden="true">
-          <i style={{ width: stepIndex >= 2 ? '100%' : '0%' }} />
-        </div>
-        <div className={stepIndex >= 2 ? 'wizard-step on' : 'wizard-step'}>
-          <span>2</span>
-          <small>{t('onboarding.progress.email')}</small>
-        </div>
-        <div className="wizard-rail" aria-hidden="true">
-          <i style={{ width: stepIndex >= 3 ? '100%' : '0%' }} />
-        </div>
-        <div className={stepIndex >= 3 ? 'wizard-step on' : 'wizard-step'}>
-          <span>3</span>
-          <small>{t('onboarding.progress.csv')}</small>
-        </div>
-      </div>
+      ) : null}
 
-      <main className={step === 'fit' ? 'wizard-stage wizard-stage-fit' : 'wizard-stage'} key={step}>
-        {step === 'fit' ? (
+      <main
+        className={
+          step === 'welcome'
+            ? 'wizard-stage wizard-stage-welcome'
+            : step === 'fit'
+              ? 'wizard-stage wizard-stage-fit'
+              : 'wizard-stage'
+        }
+        key={step}
+      >
+        {step === 'welcome' ? (
+          <section className="wizard-panel wizard-panel-welcome">
+            <div className="welcome-scatter" aria-hidden="true">
+              <img className="welcome-float welcome-float-sun" src="/onboarding/sun.png" alt="" />
+              <img
+                className="welcome-float welcome-float-mail"
+                src="/onboarding/mailbox.png"
+                alt=""
+              />
+              <img className="welcome-float welcome-float-file" src="/onboarding/file.png" alt="" />
+              <img
+                className="welcome-float welcome-float-sun-2"
+                src="/onboarding/sun.png"
+                alt=""
+              />
+              <img
+                className="welcome-float welcome-float-mail-2"
+                src="/onboarding/mailbox.png"
+                alt=""
+              />
+              <img
+                className="welcome-float welcome-float-file-2"
+                src="/onboarding/file.png"
+                alt=""
+              />
+            </div>
+            <div className="welcome-hero">
+              <Brand size="lg" />
+              <p className="kicker">{t('onboarding.welcome.kicker')}</p>
+              <h1>{t('onboarding.welcome.title', { name: user.name })}</h1>
+              <p className="lede">{t('onboarding.welcome.lede')}</p>
+              <ul className="welcome-points">
+                <li>{t('onboarding.welcome.point1')}</li>
+                <li>{t('onboarding.welcome.point2')}</li>
+                <li>{t('onboarding.welcome.point3')}</li>
+              </ul>
+              <button type="button" className="btn primary welcome-cta" onClick={() => setStep('fit')}>
+                {t('onboarding.welcome.continue')}
+              </button>
+            </div>
+          </section>
+        ) : step === 'fit' ? (
           <section className="wizard-panel wizard-panel-fit">
             <img
               className="wizard-illu"
@@ -226,22 +278,10 @@ export function OnboardingPage() {
             />
             <h1>{t('onboarding.email.title')}</h1>
             <ul className="wizard-points">
-              <li>
-                <span>1</span>
-                <p>{t('onboarding.email.point1')}</p>
-              </li>
-              <li>
-                <span>2</span>
-                <p>{t('onboarding.email.point2')}</p>
-              </li>
-              <li>
-                <span>3</span>
-                <p>{t('onboarding.email.point3')}</p>
-              </li>
-              <li>
-                <span>4</span>
-                <p>{t('onboarding.email.point4')}</p>
-              </li>
+              <li>{t('onboarding.email.point1')}</li>
+              <li>{t('onboarding.email.point2')}</li>
+              <li>{t('onboarding.email.point3')}</li>
+              <li>{t('onboarding.email.point4')}</li>
             </ul>
           </section>
         ) : (
@@ -255,22 +295,10 @@ export function OnboardingPage() {
             />
             <h1>{t('onboarding.csv.title')}</h1>
             <ul className="wizard-points">
-              <li>
-                <span>1</span>
-                <p>{t('onboarding.csv.point1')}</p>
-              </li>
-              <li>
-                <span>2</span>
-                <p>{t('onboarding.csv.point2')}</p>
-              </li>
-              <li>
-                <span>3</span>
-                <p>{t('onboarding.csv.point3')}</p>
-              </li>
-              <li>
-                <span>4</span>
-                <p>{t('onboarding.csv.point4')}</p>
-              </li>
+              <li>{t('onboarding.csv.point1')}</li>
+              <li>{t('onboarding.csv.point2')}</li>
+              <li>{t('onboarding.csv.point3')}</li>
+              <li>{t('onboarding.csv.point4')}</li>
             </ul>
             <input
               id={fileId}
@@ -298,48 +326,71 @@ export function OnboardingPage() {
         )}
       </main>
 
-      <footer className="wizard-foot">
-        {step === 'fit' ? (
-          <button type="button" className="btn primary" onClick={saveFitAndContinue}>
-            {t('onboarding.fit.continue')}
-          </button>
-        ) : step === 'email' ? (
-          <>
-            <button type="button" className="btn ghost" onClick={() => setStep('fit')}>
-              {t('onboarding.back')}
-            </button>
-            <button type="button" className="btn primary" onClick={() => allowMailbox('gmail')}>
-              {t('onboarding.email.gmail')}
-            </button>
-            <button type="button" className="btn" onClick={() => allowMailbox('outlook')}>
-              {t('onboarding.email.outlook')}
-            </button>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => {
-                setError(null)
-                setMessage(null)
-                setStep('csv')
-              }}
-            >
-              {t('onboarding.email.csv')}
-            </button>
-          </>
-        ) : (
-          <>
-            <button type="button" className="btn ghost" onClick={() => setStep('email')}>
-              {t('onboarding.back')}
-            </button>
-            <button type="button" className="btn primary" onClick={() => fileRef.current?.click()}>
-              {t('onboarding.csv.upload')}
-            </button>
-            <button type="button" className="btn ghost" onClick={finish}>
-              {t('onboarding.csv.skip')}
-            </button>
-          </>
-        )}
-      </footer>
+      {step !== 'welcome' ? (
+        <footer className="wizard-foot">
+          {step === 'fit' ? (
+            <>
+              <div className="wizard-foot-side">
+                <button type="button" className="btn slim ghost" onClick={() => setStep('welcome')}>
+                  {t('onboarding.back')}
+                </button>
+              </div>
+              <div className="wizard-foot-actions">
+                <button type="button" className="btn slim primary" onClick={saveFitAndContinue}>
+                  {t('onboarding.fit.continue')}
+                </button>
+              </div>
+            </>
+          ) : step === 'email' ? (
+            <>
+              <div className="wizard-foot-side">
+                <button type="button" className="btn slim ghost" onClick={() => setStep('fit')}>
+                  {t('onboarding.back')}
+                </button>
+              </div>
+              <div className="wizard-foot-actions">
+                <button
+                  type="button"
+                  className="btn slim ghost"
+                  onClick={() => {
+                    setError(null)
+                    setMessage(null)
+                    setStep('csv')
+                  }}
+                >
+                  {t('onboarding.email.csv')}
+                </button>
+                <button type="button" className="btn slim" onClick={() => allowMailbox('outlook')}>
+                  {t('onboarding.email.outlook')}
+                </button>
+                <button type="button" className="btn slim primary" onClick={() => allowMailbox('gmail')}>
+                  {t('onboarding.email.gmail')}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="wizard-foot-side">
+                <button type="button" className="btn slim ghost" onClick={() => setStep('email')}>
+                  {t('onboarding.back')}
+                </button>
+              </div>
+              <div className="wizard-foot-actions">
+                <button type="button" className="btn slim ghost" onClick={finish}>
+                  {t('onboarding.csv.skip')}
+                </button>
+                <button
+                  type="button"
+                  className="btn slim primary"
+                  onClick={() => fileRef.current?.click()}
+                >
+                  {t('onboarding.csv.upload')}
+                </button>
+              </div>
+            </>
+          )}
+        </footer>
+      ) : null}
     </div>
   )
 }

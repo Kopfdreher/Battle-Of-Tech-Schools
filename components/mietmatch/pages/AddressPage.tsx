@@ -1,83 +1,54 @@
 'use client'
 
-import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useSearch } from '@/components/mietmatch/nav'
+import { useState, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
+import { Link, useNavigate } from '@/components/mietmatch/nav'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
-import { resolveAddress, type ResolveOk } from '../lib/places'
-
-type Result =
-  | { kind: 'idle' }
-  | { kind: 'loading' }
-  | { kind: 'ready'; draft: ResolveOk['draft'] }
-  | { kind: 'outside'; label: string }
-  | { kind: 'missing' }
+import { buildFlatDraft, isPlaceholderFlat } from '../lib/flat-setup'
 
 export function AddressPage() {
   const { flat, setFlat } = useSession()
   const { t } = useLocale()
-  const { q } = useSearch({ from: '/_app/address' })
   const navigate = useNavigate()
-  const query = q?.trim() ?? ''
-  const [draft, setDraft] = useState(query || flat?.address || '')
-  const [seenQuery, setSeenQuery] = useState(query)
+  const router = useRouter()
+  const existing = flat && !isPlaceholderFlat(flat) ? flat : null
+  const [address, setAddress] = useState(existing?.address ?? '')
+  const [rooms, setRooms] = useState(existing && existing.rooms > 0 ? String(existing.rooms) : '')
+  const [sqm, setSqm] = useState(existing && existing.sqm > 0 ? String(existing.sqm) : '')
+  const [rentWarm, setRentWarm] = useState(existing && existing.rentWarm > 0 ? String(existing.rentWarm) : '')
   const [error, setError] = useState<string | null>(null)
-  const [remote, setRemote] = useState<{
-    query: string
-    result: Exclude<Result, { kind: 'idle' | 'loading' }>
-  } | null>(null)
-  if (query !== seenQuery) {
-    setSeenQuery(query)
-    setDraft(query)
-  }
+  const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (!query) return
-    let cancelled = false
-    resolveAddress(query)
-      .then((resolved) => {
-        if (cancelled) return
-        if (!resolved.ok) {
-          setRemote({
-            query,
-            result:
-              resolved.reason === 'outside'
-                ? { kind: 'outside', label: resolved.label ?? query }
-                : { kind: 'missing' },
-          })
-          return
-        }
-        setRemote({ query, result: { kind: 'ready', draft: resolved.draft } })
-      })
-      .catch(() => {
-        if (!cancelled) setRemote({ query, result: { kind: 'missing' } })
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [query])
-
-  const result: Result = !query
-    ? { kind: 'idle' }
-    : remote?.query === query
-      ? remote.result
-      : { kind: 'loading' }
-
-  function onSubmit(event: FormEvent) {
+  async function onSubmit(event: FormEvent) {
     event.preventDefault()
-    const next = draft.trim()
-    if (!next) {
-      setError(t('address.error.empty'))
-      return
-    }
     setError(null)
-    void navigate({ to: '/address', search: { q: next } })
-  }
-
-  async function onSave() {
-    if (result.kind !== 'ready') return
-    await setFlat(result.draft)
-    void navigate({ to: '/' })
+    setSaving(true)
+    try {
+      const result = await buildFlatDraft({
+        address,
+        rooms: Number(rooms),
+        sqm: Number(sqm),
+        rentWarm: Number(rentWarm),
+      })
+      if (!result.ok) {
+        if (result.reason === 'outside') {
+          setError(t('address.outside', { label: result.label ?? address }))
+        } else if (result.reason === 'fields') {
+          setError(t('address.error.fields'))
+        } else {
+          setError(t('address.error.empty'))
+        }
+        return
+      }
+      await setFlat(result.draft)
+      router.refresh()
+      void navigate({ to: '/' })
+    } catch {
+      setError(t('address.error.save'))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -88,76 +59,86 @@ export function AddressPage() {
         <p className="lede">{t('address.lede')}</p>
       </header>
 
-      <form className="panel address-box" onSubmit={onSubmit}>
+      <form className="panel address-box address-setup" onSubmit={onSubmit}>
         <div className="field">
-          <label htmlFor="lookup-address">{t('address.label')}</label>
+          <label htmlFor="flat-address">{t('address.label')}</label>
           <textarea
-            id="lookup-address"
+            id="flat-address"
             name="address"
             rows={2}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
+            value={address}
+            onChange={(event) => setAddress(event.target.value)}
             placeholder={t('address.placeholder')}
+            autoComplete="street-address"
+            required
           />
         </div>
+
+        <div className="address-setup-grid">
+          <div className="field">
+            <label htmlFor="flat-rooms">{t('address.fact.rooms')}</label>
+            <input
+              id="flat-rooms"
+              name="rooms"
+              type="number"
+              inputMode="decimal"
+              min={1}
+              step={0.5}
+              value={rooms}
+              onChange={(event) => setRooms(event.target.value)}
+              placeholder="2"
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="flat-sqm">{t('address.fact.size')}</label>
+            <input
+              id="flat-sqm"
+              name="sqm"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              step={1}
+              value={sqm}
+              onChange={(event) => setSqm(event.target.value)}
+              placeholder="65"
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="flat-rent">{t('address.fact.rent')}</label>
+            <input
+              id="flat-rent"
+              name="rent"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              step={1}
+              value={rentWarm}
+              onChange={(event) => setRentWarm(event.target.value)}
+              placeholder="1450"
+              required
+            />
+          </div>
+        </div>
+
         {error ? (
           <p className="error" role="alert">
             {error}
           </p>
         ) : null}
+
         <div className="address-actions">
-          <button className="btn slim primary" type="submit">
-            {t('address.lookup')}
+          <button className="btn slim primary" type="submit" disabled={saving}>
+            {saving ? t('address.saving') : t('address.setup')}
           </button>
+          {existing ? (
+            <Link className="btn slim ghost" to="/">
+              {t('address.back')}
+            </Link>
+          ) : null}
         </div>
       </form>
-
-      {result.kind === 'loading' ? <p className="address-status">{t('address.loading')}</p> : null}
-      {result.kind === 'missing' ? <p className="address-status bad">{t('address.missing')}</p> : null}
-      {result.kind === 'outside' ? (
-        <p className="address-status bad">{t('address.outside', { label: result.label })}</p>
-      ) : null}
-      {result.kind === 'ready' ? <FlatPreview draft={result.draft} onSave={onSave} /> : null}
     </div>
-  )
-}
-
-function FlatPreview({
-  draft,
-  onSave,
-}: {
-  draft: ResolveOk['draft']
-  onSave: () => void
-}) {
-  const { t } = useLocale()
-  return (
-    <article className="address-preview">
-      <p className="kicker">
-        {draft.district || 'Berlin'} · {draft.bezirk}
-      </p>
-      <h2>{draft.address}</h2>
-      <ul className="address-facts">
-        <li>
-          <span>{t('address.fact.rent')}</span>
-          <strong>€{draft.rentWarm}</strong>
-        </li>
-        <li>
-          <span>{t('address.fact.rooms')}</span>
-          <strong>{draft.rooms}</strong>
-        </li>
-        <li>
-          <span>{t('address.fact.size')}</span>
-          <strong>{draft.sqm} m²</strong>
-        </li>
-      </ul>
-      <div className="address-actions">
-        <button className="btn slim primary" type="button" onClick={onSave}>
-          {t('address.use')}
-        </button>
-        <Link className="btn slim ghost" to="/">
-          {t('address.back')}
-        </Link>
-      </div>
-    </article>
   )
 }
