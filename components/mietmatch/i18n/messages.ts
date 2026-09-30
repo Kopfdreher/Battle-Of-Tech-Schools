@@ -35,7 +35,7 @@ const en: Dict = {
   'login.kicker': 'Landlord log in',
   'login.title': 'Open your applicant shortlist',
   'login.lede': 'Sign in to import applications, score them against your screening rules, and see match percentages.',
-  'login.email': 'Work email',
+  'login.email': 'Email',
   'login.password': 'Password',
   'login.submit': 'Sign in as landlord',
   'login.pending': 'Signing in…',
@@ -64,6 +64,14 @@ const en: Dict = {
   'signup.error.generic': 'Could not create the account.',
 
   'onboarding.hello': 'Hi, {name}',
+  'onboarding.welcome.kicker': 'For Berlin landlords',
+  'onboarding.welcome.title': 'Welcome to BesichtiGo, {name}',
+  'onboarding.welcome.lede':
+    'BesichtiGo helps you shortlist flat applications fairly — by your rules, not by reading free-text messages.',
+  'onboarding.welcome.point1': 'Set the tenant factors that matter for your listing.',
+  'onboarding.welcome.point2': 'Import applicants from email or a CSV.',
+  'onboarding.welcome.point3': 'Rank by match % and invite the strongest fits to viewings.',
+  'onboarding.welcome.continue': 'Get started',
   'onboarding.progressLabel': 'Onboarding steps',
   'onboarding.progress.fit': 'Tenant factors',
   'onboarding.progress.email': 'Email permission',
@@ -432,7 +440,7 @@ const de: Dict = {
   'login.title': 'Zur Bewerber-Shortlist',
   'login.lede':
     'Melden Sie sich an, um Bewerbungen zu importieren, nach Ihren Regeln zu bewerten und Match-Prozente zu sehen.',
-  'login.email': 'Geschäftliche E-Mail',
+  'login.email': 'E-Mail',
   'login.password': 'Passwort',
   'login.submit': 'Als Vermieter anmelden',
   'login.pending': 'Anmeldung…',
@@ -462,6 +470,14 @@ const de: Dict = {
   'signup.error.generic': 'Konto konnte nicht erstellt werden.',
 
   'onboarding.hello': 'Hallo, {name}',
+  'onboarding.welcome.kicker': 'Für Berliner Vermieter',
+  'onboarding.welcome.title': 'Willkommen bei BesichtiGo, {name}',
+  'onboarding.welcome.lede':
+    'BesichtiGo hilft Ihnen, Bewerbungen fair zu shortlisten — nach Ihren Regeln, ohne Freitext zu bewerten.',
+  'onboarding.welcome.point1': 'Legen Sie die Mieter-Faktoren fest, die für Ihre Wohnung zählen.',
+  'onboarding.welcome.point2': 'Importieren Sie Bewerber per E-Mail oder CSV.',
+  'onboarding.welcome.point3': 'Sortieren Sie nach Match-% und laden Sie die besten Kandidaten ein.',
+  'onboarding.welcome.continue': 'Loslegen',
   'onboarding.progressLabel': 'Onboarding-Schritte',
   'onboarding.progress.fit': 'Mieter-Faktoren',
   'onboarding.progress.email': 'E-Mail-Erlaubnis',

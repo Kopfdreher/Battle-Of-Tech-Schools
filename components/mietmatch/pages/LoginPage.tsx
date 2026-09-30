@@ -34,8 +34,7 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout>
-      <p className="kicker">{t('login.kicker')}</p>
+    <AuthLayout kicker={t('login.kicker')}>
       <h2>{t('login.title')}</h2>
       <p className="lede">{t('login.lede')}</p>
       <form className="form" method="post" onSubmit={onSubmit} noValidate>
