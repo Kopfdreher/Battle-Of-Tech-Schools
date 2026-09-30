@@ -14,15 +14,16 @@ model Listing {
   address      String
   rentAmount   Decimal       @map("rent_amount") @db.Decimal(10, 2)
   rooms        Int
+  userId       String?       @map("user_id")
   createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  applications Application[]
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("listings")
 }
 
 model Application {
   id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  apartmentId           String?  @map("_apartment_id") @db.Uuid
+  userId                String?  @map("user_id")
   displayName           String   @map("display_name")
   email                 String?
   netIncomeMonthly      Decimal  @map("net_income_monthly") @db.Decimal(10, 2)
@@ -43,9 +44,9 @@ model Application {
   appliedAt             DateTime? @map("applied_at") @db.Timestamptz(6)
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  listing               Listing?  @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  user                  User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([apartmentId])
+  @@index([userId])
   @@map("applications")
 }
 
@@ -59,6 +60,8 @@ model User {
   updatedAt     DateTime
   sessions      Session[]
   accounts      Account[]
+  listings      Listing[]
+  applications  Application[]
 
   @@unique([email])
   @@map("user")
