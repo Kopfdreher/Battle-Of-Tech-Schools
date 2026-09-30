@@ -1,10 +1,10 @@
 'use client'
 
-import { useId, useRef, useState, type FormEvent } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Link } from '@/components/mietmatch/nav'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
-import { CSV_TEMPLATE, parseApplicantCsv } from '../lib/csv'
+import { parseApplicantCsv } from '../lib/csv'
 import type { MailboxProvider } from '../types'
 
 export function ImportApplicants() {
@@ -52,16 +52,6 @@ export function ImportApplicants() {
     setError(null)
     setMessage(null)
     setError(t('import.scan.unavailable'))
-  }
-
-  function download(filename: string, content: string) {
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    link.click()
-    URL.revokeObjectURL(url)
   }
 
   return (
@@ -138,6 +128,7 @@ export function ImportApplicants() {
           <div className="import-panel-head">
             <p className="kicker">{t('import.csv.kicker')}</p>
             <h2>{t('import.csv.title')}</h2>
+            <p className="import-revoke">{t('import.csv.lede')}</p>
           </div>
           <input
             ref={fileRef}
@@ -154,19 +145,7 @@ export function ImportApplicants() {
             <button type="button" className="btn slim primary" onClick={() => fileRef.current?.click()}>
               {t('import.csv.upload')}
             </button>
-            <button
-              type="button"
-              className="btn slim"
-              onClick={() => download('besichtigo-applicants-template.csv', CSV_TEMPLATE)}
-            >
-              {t('import.csv.template')}
-            </button>
           </div>
-          <CsvPaste
-            onImport={applyCsv}
-            label={t('import.csv.paste')}
-            submitLabel={t('import.csv.pasteSubmit')}
-          />
         </section>
       </div>
 
@@ -200,42 +179,5 @@ export function ImportApplicants() {
         </div>
       ) : null}
     </div>
-  )
-}
-
-function CsvPaste({
-  onImport,
-  label,
-  submitLabel,
-}: {
-  onImport: (text: string) => void
-  label: string
-  submitLabel: string
-}) {
-  const [paste, setPaste] = useState('')
-
-  function onSubmit(event: FormEvent) {
-    event.preventDefault()
-    if (!paste.trim()) return
-    onImport(paste)
-    setPaste('')
-  }
-
-  return (
-    <form className="import-paste" onSubmit={onSubmit}>
-      <div className="field">
-        <label htmlFor="csv-paste">{label}</label>
-        <textarea
-          id="csv-paste"
-          rows={3}
-          value={paste}
-          onChange={(event) => setPaste(event.target.value)}
-          placeholder="name,email,net_income,household_size,contract,..."
-        />
-      </div>
-      <button className="btn slim primary" type="submit">
-        {submitLabel}
-      </button>
-    </form>
   )
 }

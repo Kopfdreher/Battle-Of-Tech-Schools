@@ -236,7 +236,7 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
         </label>
 
         <div className="invite-send-actions">
-          <button type="submit" className="btn primary" disabled={sending || recipients.length === 0}>
+          <button type="submit" className="btn box-btn primary" disabled={sending || recipients.length === 0}>
             {sending
               ? t('invite.sending')
               : recipients.length === 1
