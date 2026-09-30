@@ -39,7 +39,7 @@ export function SignupPage() {
     setPending(true)
     try {
       await signup(name, email, password)
-      void navigate({ to: '/' })
+      void navigate({ to: '/onboarding' })
     } catch (err) {
       setError(err instanceof Error ? err.message : t('signup.error.generic'))
     } finally {

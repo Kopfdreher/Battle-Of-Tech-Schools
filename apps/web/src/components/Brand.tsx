@@ -16,7 +16,7 @@ export function Brand() {
         </svg>
       </span>
       <span className="brand-text">
-        <strong>Mietmatch</strong>
+        <strong>BesichtiGo</strong>
         <small>{t('brand.tagline')}</small>
       </span>
     </div>

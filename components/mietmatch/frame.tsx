@@ -9,16 +9,17 @@ import { useSession } from './context/session'
 import { useListingChoices } from './providers'
 
 export function Frame({ children }: { children: ReactNode }) {
-  const { user, ready, flat } = useSession()
+  const { user, ready, onboardingDone, flat } = useSession()
   const listings = useListingChoices()
   const pathname = usePathname()
 
   if (!ready) return null
   if (!user) return <Navigate to="/login" />
+  if (!onboardingDone) return <Navigate to="/onboarding" />
 
   return (
     <AppShell>
-      {pathname === '/' ? (
+      {pathname === '/' && listings.length > 1 ? (
         <div className="listing-switch">
           {listings.map((listing) => (
             <Link
@@ -29,9 +30,6 @@ export function Frame({ children }: { children: ReactNode }) {
               {listing.label}
             </Link>
           ))}
-          <Link className="filter-chip" href="/review">
-            Database table
-          </Link>
         </div>
       ) : null}
       {children}

@@ -29,6 +29,10 @@ export function marksKey(userId: string) {
   return `kiezbrief.landlord.marks.${userId}`
 }
 
+export function onboardingKey(userId: string) {
+  return `kiezbrief.landlord.onboarding.${userId}`
+}
+
 export function readJson<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key)

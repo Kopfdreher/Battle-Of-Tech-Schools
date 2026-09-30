@@ -14,6 +14,7 @@ import {
   invitedKey,
   mailboxKey,
   marksKey,
+  onboardingKey,
   readJson,
   removeKey,
   requirementsKey,
@@ -30,9 +31,11 @@ import type {
   User,
 } from '../types'
 import { SessionContext, type ApplicantMark, type SessionValue } from './session'
+import { applicantCode } from '../lib/anonymize'
 
 type SessionState = {
   user: User | null
+  onboardingDone: boolean
   requirements: Requirements
   flat: LandlordFlat | null
   applicants: Applicant[]
@@ -42,6 +45,14 @@ type SessionState = {
   marks: Record<string, ApplicantMark>
 }
 
+function anonymizeApplicant<T extends { id?: string; fingerprint?: string; displayName: string }>(item: T): T {
+  const seed = item.fingerprint || item.id || item.displayName
+  return {
+    ...item,
+    displayName: `Applicant ${applicantCode(seed)}`,
+  }
+}
+
 function loadFlat(userId: string) {
   const raw = readJson<LandlordFlat | null>(flatKey(userId), null)
   return raw && typeof raw.id === 'string' ? raw : null
@@ -49,7 +60,10 @@ function loadFlat(userId: string) {
 
 function loadApplicants(userId: string) {
   const raw = readJson<Applicant[]>(applicantsKey(userId), [])
-  return Array.isArray(raw) ? raw.filter((item) => item && typeof item.id === 'string') : []
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((item) => item && typeof item.id === 'string')
+    .map((item) => anonymizeApplicant(item))
 }
 
 function loadMailbox(userId: string) {
@@ -91,6 +105,7 @@ function loadMarks(userId: string): Record<string, ApplicantMark> {
 function emptyState(): SessionState {
   return {
     user: null,
+    onboardingDone: true,
     requirements: defaultRequirements,
     flat: null,
     applicants: [],
@@ -101,11 +116,23 @@ function emptyState(): SessionState {
   }
 }
 
+function resolveOnboardingDone(
+  userId: string,
+  flat: LandlordFlat | null,
+  applicants: Applicant[],
+  mailbox: MailboxConnection | null,
+) {
+  const stored = readJson<boolean | null>(onboardingKey(userId), null)
+  if (stored === true) return true
+  if (stored === false) return false
+  return Boolean(flat || applicants.length > 0 || mailbox)
+}
+
 type ServerBoard = { flat: LandlordFlat; applicants: Applicant[] }
 
 function withBoard(state: SessionState, board: ServerBoard | null): SessionState {
   if (!board) return state
-  return { ...state, flat: board.flat, applicants: board.applicants }
+  return { ...state, flat: board.flat, applicants: board.applicants.map((item) => anonymizeApplicant(item)) }
 }
 
 export function SessionProvider({
@@ -121,7 +148,7 @@ export function SessionProvider({
 
   useEffect(() => {
     if (session.isPending) return;
-    
+
     const betterUser = session.data?.user || null;
     const userId = betterUser ? betterUser.id : null;
 
@@ -131,12 +158,16 @@ export function SessionProvider({
       return
     }
 
+    const flat = loadFlat(userId!)
+    const applicants = loadApplicants(userId!)
+    const mailbox = loadMailbox(userId!)
     setState(withBoard({
       user: { id: betterUser.id, name: betterUser.name, email: betterUser.email },
+      onboardingDone: resolveOnboardingDone(userId!, flat, applicants, mailbox),
       requirements: sanitizeRequirements(readJson<unknown>(requirementsKey(userId!), null)),
-      flat: loadFlat(userId!),
-      applicants: loadApplicants(userId!),
-      mailbox: loadMailbox(userId!),
+      flat,
+      applicants,
+      mailbox,
       invitedIds: loadInvited(userId!),
       invitations: loadInvitations(userId!),
       marks: loadMarks(userId!),
@@ -182,7 +213,8 @@ export function SessionProvider({
   }, [state.user, state.marks])
 
   const signup = useCallback(async (name: string, email: string, password: string) => {
-    await register(name, email, password)
+    const user = await register(name, email, password)
+    writeJson(onboardingKey(user.id), false)
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
@@ -193,6 +225,14 @@ export function SessionProvider({
     await authClient.signOut()
     removeKey(sessionKey)
     setState(emptyState())
+  }, [])
+
+  const completeOnboarding = useCallback(() => {
+    setState((current) => {
+      if (!current.user) return current
+      writeJson(onboardingKey(current.user.id), true)
+      return { ...current, onboardingDone: true }
+    })
   }, [])
 
   const updateRequirements = useCallback((requirements: Requirements) => {
@@ -221,11 +261,12 @@ export function SessionProvider({
   }, [])
 
   const addApplicant = useCallback((draft: Omit<Applicant, 'id' | 'appliedAt'>) => {
-    const applicant: Applicant = {
+    const id = `app-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
+    const applicant = anonymizeApplicant({
       ...draft,
-      id: `app-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+      id,
       appliedAt: new Date().toISOString(),
-    }
+    })
     setState((current) => ({ ...current, applicants: [applicant, ...current.applicants] }))
     return applicant
   }, [])
@@ -245,11 +286,14 @@ export function SessionProvider({
 
   const importApplicants = useCallback(
     (drafts: Omit<Applicant, 'id' | 'appliedAt'>[], mode: 'replace' | 'append' = 'replace') => {
-      const stamped = drafts.map((item, index) => ({
-        ...item,
-        id: `imp-${Date.now().toString(36)}-${index}-${Math.random().toString(36).slice(2, 6)}`,
-        appliedAt: new Date(Date.now() - index * 60_000).toISOString(),
-      }))
+      const stamped = drafts.map((item, index) => {
+        const id = `imp-${Date.now().toString(36)}-${index}-${Math.random().toString(36).slice(2, 6)}`
+        return anonymizeApplicant({
+          ...item,
+          id,
+          appliedAt: new Date(Date.now() - index * 60_000).toISOString(),
+        })
+      })
       setState((current) => ({
         ...current,
         applicants: mode === 'append' ? [...stamped, ...current.applicants] : stamped,
@@ -263,11 +307,14 @@ export function SessionProvider({
   )
 
   const loadSampleApplicants = useCallback(() => {
-    const stamped = SAMPLE_APPLICANTS.map((item, index) => ({
-      ...item,
-      id: `sample-${index}-${Date.now().toString(36)}`,
-      appliedAt: new Date(Date.now() - index * 36e5).toISOString(),
-    }))
+    const stamped = SAMPLE_APPLICANTS.map((item, index) => {
+      const id = `sample-${index}-${Date.now().toString(36)}`
+      return anonymizeApplicant({
+        ...item,
+        id,
+        appliedAt: new Date(Date.now() - index * 36e5).toISOString(),
+      })
+    })
     setState((current) => ({
       ...current,
       applicants: stamped,
@@ -294,12 +341,15 @@ export function SessionProvider({
       sourceNote: 'Demo listing for trying the landlord shortlist.',
     }
     const parsed = parseApplicantCsv(buildDemoCsv(100))
-    const stamped = parsed.drafts.map((item, index) => ({
-      ...item,
-      id: `demo-${index}-${Date.now().toString(36)}`,
-      appliedAt: new Date(Date.now() - index * 60_000).toISOString(),
-      messagePreview: '[Demo applicant — free text is not used for scoring.]',
-    }))
+    const stamped = parsed.drafts.map((item, index) => {
+      const id = `demo-${index}-${Date.now().toString(36)}`
+      return anonymizeApplicant({
+        ...item,
+        id,
+        appliedAt: new Date(Date.now() - index * 60_000).toISOString(),
+        messagePreview: '[Demo applicant — free text is not used for scoring.]',
+      })
+    })
     setState((current) => ({
       ...current,
       flat,
@@ -438,6 +488,7 @@ export function SessionProvider({
       signup,
       login,
       logout,
+      completeOnboarding,
       updateRequirements,
       setFlat,
       clearFlat,
@@ -462,6 +513,7 @@ export function SessionProvider({
       signup,
       login,
       logout,
+      completeOnboarding,
       updateRequirements,
       setFlat,
       clearFlat,
