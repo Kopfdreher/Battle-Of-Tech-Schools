@@ -1,6 +1,5 @@
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
-import mascotUrl from '../assets/mascot.png'
 import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
 import { Brand } from './Brand.tsx'
@@ -43,7 +42,6 @@ export function AppShell({ children }: { children?: ReactNode }) {
           })}
         </nav>
         <div className="side-foot">
-          <img className="side-mascot" src={mascotUrl} alt="" />
           <ProfileMenu />
         </div>
       </aside>

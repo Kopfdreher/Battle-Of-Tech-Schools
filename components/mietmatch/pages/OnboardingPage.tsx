@@ -163,7 +163,6 @@ export function OnboardingPage() {
       </div>
 
       <main className={step === 'fit' ? 'wizard-stage wizard-stage-fit' : 'wizard-stage'} key={step}>
-        {step === 'fit' ? null : <img className="wizard-mascot" src="/mascot.png" alt="" />}
         {step === 'fit' ? (
           <section className="wizard-panel wizard-panel-fit">
             <p className="kicker">{t('onboarding.fit.kicker')}</p>
