@@ -28,6 +28,15 @@ export async function seedApplications(prev: SeedState): Promise<SeedState> {
         });
         listingRows.push(created);
       }
+    } else {
+      // Clean existing sample applications before re-seeding to prevent duplicates
+      await db.application.deleteMany({
+        where: {
+          applicantName: {
+            in: sampleApplications.map((app) => app.applicantName),
+          },
+        },
+      });
     }
 
     await db.application.createMany({
