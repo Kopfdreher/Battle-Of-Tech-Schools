@@ -3,9 +3,9 @@
 import { Link } from '@/components/mietmatch/nav'
 import { useLocale } from '../context/LocaleContext'
 import { useSession, type ApplicantMark } from '../context/session'
-import { applicantCode } from '../lib/anonymize'
 import { matchTone, type Verdict } from '../lib/match'
 import type { Applicant } from '../types'
+import { BlurredName } from './BlurredName'
 
 export type ListGroup = 'all' | 'like' | 'unsure'
 
@@ -81,9 +81,6 @@ export function ApplicantRow({
 
   const matchLabel = tone === 'good' ? t('row.strong') : t('row.weak')
   const matchShort = tone === 'good' ? t('row.strongShort') : t('row.weakShort')
-  const alias = t('applicant.alias', {
-    code: applicantCode(applicant.fingerprint || applicant.id),
-  })
   const peopleLabel =
     applicant.householdSize === 1
       ? `1 ${t('row.person')}`
@@ -107,7 +104,7 @@ export function ApplicantRow({
             {number}
           </span>
           <span className="invite-copy">
-            <strong>{alias}</strong>
+            <BlurredName as="strong" name={applicant.displayName} />
             <small>
               {peopleLabel} · {applicant.contractType} · {matchLabel}
             </small>
@@ -118,7 +115,7 @@ export function ApplicantRow({
           </span>
         </button>
 
-        <div className="row-mark-icons" role="group" aria-label={alias}>
+        <div className="row-mark-icons" role="group" aria-label="Applicant">
           <button
             type="button"
             className={mark === 'like' ? 'row-mark-btn like on' : 'row-mark-btn like'}

@@ -4,7 +4,8 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from '@/components/mietmatch/nav'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
-import { applicantCode, maskEmail } from '../lib/anonymize'
+import { maskEmail } from '../lib/anonymize'
+import { BlurredName } from '../components/BlurredName'
 import type { Invitation } from '../types'
 
 type Slot = {
@@ -167,16 +168,13 @@ function AppointmentCard({
       <ul className="appointment-people">
         {slot.invitations.map((invitation) => {
           const applicant = people.get(invitation.applicantId)
-          const alias = applicant
-            ? t('applicant.alias', { code: applicantCode(applicant.id) })
-            : null
           return (
             <li key={invitation.id} className="appointment-person">
               <div>
                 <strong>
-                  {applicant && alias ? (
+                  {applicant ? (
                     <Link to="/applicants/$id" params={{ id: applicant.id }}>
-                      {alias}
+                      <BlurredName name={applicant.displayName} />
                     </Link>
                   ) : (
                     t('appointments.unknown')

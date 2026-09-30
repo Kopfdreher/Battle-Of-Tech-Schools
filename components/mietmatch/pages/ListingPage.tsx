@@ -3,8 +3,8 @@
 import { Link, useNavigate, useParams } from '@/components/mietmatch/nav'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
-import { applicantCode } from '../lib/anonymize'
 import { evaluateApplicant, matchTone } from '../lib/match'
+import { BlurredName } from '../components/BlurredName'
 
 export function ListingPage() {
   const { id } = useParams({ from: '/_app/applicants/$id' })
@@ -12,6 +12,7 @@ export function ListingPage() {
   const { t } = useLocale()
   const { flat, applicants, requirements, removeApplicant, marks, setApplicantMark } = useSession()
   const applicant = applicants.find((item) => item.id === id)
+
 
   if (!flat) {
     return (
@@ -38,9 +39,6 @@ export function ListingPage() {
   const verdict = evaluateApplicant(applicant, flat, requirements, applicants)
   const tone = matchTone(verdict)
   const mark = marks[applicant.id] ?? null
-  const alias = t('applicant.alias', {
-    code: applicantCode(applicant.fingerprint || applicant.id),
-  })
   const docs = [
     { label: 'No-arrears letter', ok: applicant.hasArrearsLetter },
     { label: 'Income proof', ok: applicant.hasIncomeProof },
@@ -58,7 +56,9 @@ export function ListingPage() {
           <p className="kicker">
             {tone === 'good' ? 'Strong match' : 'Weak match'} · {verdict.matchRate}%
           </p>
-          <h1>{alias}</h1>
+          <h1>
+            <BlurredName as="span" name={applicant.displayName} />
+          </h1>
           <p className="lede">
             €{applicant.netIncomeMonthly} net / month · {applicant.householdSize} in household ·{' '}
             {applicant.contractType} contract

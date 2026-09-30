@@ -88,9 +88,9 @@ const en: Dict = {
   'onboarding.email.kicker': 'Step 2 of 3 · Inbox access',
   'onboarding.email.title': 'Connect your email to fetch applications?',
   'onboarding.email.lede':
-    'We can read application emails from your inbox. Sensitive details are anonymized and encrypted first — so AI helpers never see private data.',
+    'We can read application emails from your inbox. Names stay on screen but are blurred, and other sensitive details are masked before AI helpers see anything.',
   'onboarding.email.point1':
-    'Our anonymization tool encrypts sensitive personal data before anything is shared.',
+    'Applicant names are blurred in the UI. Emails and message text are masked before anything is shared.',
   'onboarding.email.point2':
     'Third parties like LLM agents cannot access that private information.',
   'onboarding.email.point3':
@@ -105,6 +105,14 @@ const en: Dict = {
   'onboarding.csv.title': 'Upload applicant data as a CSV',
   'onboarding.csv.lede':
     'Keep everything in your browser. We will not connect your mailbox or send email content to AI. Applicant data is deleted from the database automatically after 30 days.',
+  'onboarding.csv.point1':
+    'Download the empty template or sample file, then fill in one row per applicant.',
+  'onboarding.csv.point2':
+    'Include name, email, income, household size, contract type, and document checkboxes.',
+  'onboarding.csv.point3':
+    'Upload stays in your browser — nothing is sent to AI from this step.',
+  'onboarding.csv.point4':
+    'Applicant data is deleted from the database automatically after 30 days.',
   'onboarding.csv.upload': 'Choose CSV file',
   'onboarding.csv.template': 'Download empty template',
   'onboarding.csv.sample': 'Download sample CSV',
@@ -430,9 +438,9 @@ const de: Dict = {
   'onboarding.email.kicker': 'Schritt 2 von 3 · Postfachzugriff',
   'onboarding.email.title': 'E-Mail verbinden, um Bewerbungen zu holen?',
   'onboarding.email.lede':
-    'Wir können Bewerbungsmails aus Ihrem Postfach lesen. Sensible Daten werden zuerst anonymisiert und verschlüsselt — damit KI-Helfer keine privaten Infos sehen.',
+    'Wir können Bewerbungsmails aus Ihrem Postfach lesen. Namen bleiben sichtbar, sind aber unscharf — andere sensible Details werden maskiert, bevor KI-Helfer etwas sehen.',
   'onboarding.email.point1':
-    'Unser Anonymisierungs-Tool verschlüsselt sensible personenbezogene Daten, bevor etwas weitergegeben wird.',
+    'Bewerbernamen werden in der Oberfläche unscharf dargestellt. E-Mails und Nachrichtentext werden maskiert, bevor etwas geteilt wird.',
   'onboarding.email.point2':
     'Dritte wie LLM-Agenten bekommen keinen Zugriff auf diese privaten Informationen.',
   'onboarding.email.point3':
@@ -447,6 +455,14 @@ const de: Dict = {
   'onboarding.csv.title': 'Bewerberdaten als CSV hochladen',
   'onboarding.csv.lede':
     'Alles bleibt in Ihrem Browser. Wir verbinden kein Postfach und senden keine E-Mail-Inhalte an die KI. Bewerberdaten werden nach 30 Tagen automatisch aus der Datenbank gelöscht.',
+  'onboarding.csv.point1':
+    'Laden Sie die leere Vorlage oder die Beispieldatei herunter und füllen Sie eine Zeile pro Bewerber aus.',
+  'onboarding.csv.point2':
+    'Enthalten: Name, E-Mail, Einkommen, Haushaltsgröße, Vertragsart und Dokument-Checkboxen.',
+  'onboarding.csv.point3':
+    'Der Upload bleibt in Ihrem Browser — in diesem Schritt wird nichts an die KI gesendet.',
+  'onboarding.csv.point4':
+    'Bewerberdaten werden nach 30 Tagen automatisch aus der Datenbank gelöscht.',
   'onboarding.csv.upload': 'CSV-Datei wählen',
   'onboarding.csv.template': 'Leere Vorlage herunterladen',
   'onboarding.csv.sample': 'Beispiel-CSV herunterladen',

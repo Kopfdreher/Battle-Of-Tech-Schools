@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useLocale } from '../context/LocaleContext.tsx'
 import { useSession } from '../context/session.ts'
+import { applicantCode, maskEmail } from '../lib/anonymize.ts'
 import type { Invitation } from '../types.ts'
 
 type Slot = {
@@ -170,13 +171,13 @@ function AppointmentCard({
                 <strong>
                   {applicant ? (
                     <Link to="/applicants/$id" params={{ id: applicant.id }}>
-                      {applicant.displayName}
+                      {t('applicant.alias', { code: applicantCode(applicant.id) })}
                     </Link>
                   ) : (
                     t('appointments.unknown')
                   )}
                 </strong>
-                {applicant ? <small>{applicant.email}</small> : null}
+                {applicant?.email ? <small>{maskEmail(applicant.email)}</small> : null}
               </div>
               <button type="button" className="text-button" onClick={() => onRemove(invitation.id)}>
                 {t('appointments.remove')}

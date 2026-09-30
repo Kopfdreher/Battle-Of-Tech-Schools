@@ -31,7 +31,7 @@ export async function seedApplications(prev: SeedState): Promise<SeedState> {
     }
 
     await db.application.createMany({
-      data: sampleApplications.map((application) => ({
+      data: sampleApplications.map((application, index) => ({
         listingId: listingRows[application.listingIndex % listingRows.length].id,
         applicantName: application.applicantName,
         income: application.income,

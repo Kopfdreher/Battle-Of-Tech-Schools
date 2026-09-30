@@ -73,7 +73,7 @@ export default async function ApplicationPage({
       <header className="flex flex-col gap-2">
         <p className="text-sm text-zinc-500">{listing.address}</p>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {application.applicantName}
+          <span className="name-blur">{application.applicantName}</span>
         </h1>
         <p className="text-sm capitalize text-zinc-600">
           Status: {application.status}

@@ -31,7 +31,7 @@ import type {
   User,
 } from '../types'
 import { SessionContext, type ApplicantMark, type SessionValue } from './session'
-import { applicantCode } from '../lib/anonymize'
+import { anonymizeApplicantRecord, isCodedAlias } from '../lib/anonymize'
 
 type SessionState = {
   user: User | null
@@ -45,12 +45,21 @@ type SessionState = {
   marks: Record<string, ApplicantMark>
 }
 
-function anonymizeApplicant<T extends { id?: string; fingerprint?: string; displayName: string }>(item: T): T {
-  const seed = item.fingerprint || item.id || item.displayName
-  return {
-    ...item,
-    displayName: `Applicant ${applicantCode(seed)}`,
-  }
+function anonymizeApplicant<T extends Applicant | Omit<Applicant, 'id' | 'appliedAt'>>(item: T): T {
+  return anonymizeApplicantRecord(item)
+}
+
+/** Restore real names when older sessions stored "Applicant ABCD" codes. */
+function restoreDisplayName<T extends Applicant>(item: T): T {
+  if (!isCodedAlias(item.displayName)) return item
+  const seed = SAMPLE_APPLICANTS.find(
+    (sample) =>
+      sample.fingerprint === item.fingerprint ||
+      (item.email && sample.email.toLowerCase() === item.email.toLowerCase()),
+  )
+  if (seed) return { ...item, displayName: seed.displayName }
+  // Fall back to a name-shaped label so blur still looks like a name, not a code.
+  return { ...item, displayName: 'Applicant name' }
 }
 
 function loadFlat(userId: string) {
@@ -63,7 +72,7 @@ function loadApplicants(userId: string) {
   if (!Array.isArray(raw)) return []
   return raw
     .filter((item) => item && typeof item.id === 'string')
-    .map((item) => anonymizeApplicant(item))
+    .map((item) => anonymizeApplicant(restoreDisplayName(item)))
 }
 
 function loadMailbox(userId: string) {
