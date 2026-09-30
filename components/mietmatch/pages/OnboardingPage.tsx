@@ -165,9 +165,14 @@ export function OnboardingPage() {
       <main className={step === 'fit' ? 'wizard-stage wizard-stage-fit' : 'wizard-stage'} key={step}>
         {step === 'fit' ? (
           <section className="wizard-panel wizard-panel-fit">
-            <p className="kicker">{t('onboarding.fit.kicker')}</p>
+            <img
+              className="wizard-illu"
+              src="/onboarding/sun.png"
+              alt=""
+              width={180}
+              height={180}
+            />
             <h1>{t('onboarding.fit.title')}</h1>
-            <p className="lede">{t('onboarding.fit.lede')}</p>
             <ul className="wizard-fit-list" aria-label={t('onboarding.fit.pickLabel')}>
               {[
                 ...selected,
@@ -221,10 +226,15 @@ export function OnboardingPage() {
             ) : null}
           </section>
         ) : step === 'email' ? (
-          <section className="wizard-panel">
-            <p className="kicker">{t('onboarding.email.kicker')}</p>
+          <section className="wizard-panel wizard-panel-email">
+            <img
+              className="wizard-illu"
+              src="/onboarding/mailbox.png"
+              alt=""
+              width={180}
+              height={180}
+            />
             <h1>{t('onboarding.email.title')}</h1>
-            <p className="lede">{t('onboarding.email.lede')}</p>
             <ul className="wizard-points">
               <li>
                 <span>1</span>
@@ -245,10 +255,33 @@ export function OnboardingPage() {
             </ul>
           </section>
         ) : (
-          <section className="wizard-panel">
-            <p className="kicker">{t('onboarding.csv.kicker')}</p>
+          <section className="wizard-panel wizard-panel-csv">
+            <img
+              className="wizard-illu"
+              src="/onboarding/file.png"
+              alt=""
+              width={180}
+              height={180}
+            />
             <h1>{t('onboarding.csv.title')}</h1>
-            <p className="lede">{t('onboarding.csv.lede')}</p>
+            <ul className="wizard-points">
+              <li>
+                <span>1</span>
+                <p>{t('onboarding.csv.point1')}</p>
+              </li>
+              <li>
+                <span>2</span>
+                <p>{t('onboarding.csv.point2')}</p>
+              </li>
+              <li>
+                <span>3</span>
+                <p>{t('onboarding.csv.point3')}</p>
+              </li>
+              <li>
+                <span>4</span>
+                <p>{t('onboarding.csv.point4')}</p>
+              </li>
+            </ul>
             <input
               id={fileId}
               ref={fileRef}
@@ -261,9 +294,6 @@ export function OnboardingPage() {
               }}
             />
             <div className="wizard-file-row">
-              <button type="button" className="btn primary" onClick={() => fileRef.current?.click()}>
-                {t('onboarding.csv.upload')}
-              </button>
               <button type="button" className="btn" onClick={downloadTemplate}>
                 {t('onboarding.csv.template')}
               </button>

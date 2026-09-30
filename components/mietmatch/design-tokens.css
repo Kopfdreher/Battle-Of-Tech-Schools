@@ -1,0 +1,79 @@
+/**
+ * BesichtiGo design system
+ * --------------------------
+ * Light white base + navy/teal/sky accents pulled from the card artwork
+ * (waves, sky gradient, deep navy). Edit tokens here; UI CSS should use
+ * --ds-* (or the legacy aliases below) instead of hard-coded hex.
+ *
+ * Surfaces:  --ds-bg, --ds-surface, --ds-surface-muted
+ * Brand:     --ds-navy, --ds-teal, --ds-sky (+ soft / mid / deep)
+ * Semantic:  --ds-danger, --ds-success, --ds-warning (+ soft fills)
+ * Effects:   --ds-radius-*, --ds-shadow*, --ds-blur-name
+ */
+
+:root {
+  /* ---- Core surfaces (light) ---- */
+  --ds-bg: #f5f8fb;
+  --ds-bg-accent: #eef4f8;
+  --ds-surface: #ffffff;
+  --ds-surface-muted: #f7fafc;
+  --ds-ink: #12162a;
+  --ds-muted: #5d6d82;
+  --ds-line: #d5e0ea;
+  --ds-line-strong: #b7c8d8;
+
+  /* ---- Brand (card image: navy + teal sky) ---- */
+  --ds-navy: #080820;
+  --ds-navy-soft: #1c203c;
+  --ds-teal: #6c98b0;
+  --ds-teal-deep: #4a708c;
+  --ds-sky: #a8dcf0;
+  --ds-sky-soft: #e7f5fb;
+  --ds-sky-mid: #7aadc4;
+
+  /* ---- Semantic ---- */
+  --ds-danger: #c23b3b;
+  --ds-danger-soft: #fdecec;
+  --ds-success: #2f7d5a;
+  --ds-success-soft: #e7f5ee;
+  --ds-warning: #9a6b1f;
+  --ds-warning-soft: #fff5e4;
+
+  /* ---- Effects ---- */
+  --ds-radius-sm: 10px;
+  --ds-radius-md: 14px;
+  --ds-radius-lg: 18px;
+  --ds-radius-pill: 999px;
+  --ds-shadow: 0 14px 36px rgba(16, 22, 48, 0.08);
+  --ds-shadow-soft: 0 8px 22px rgba(16, 22, 48, 0.06);
+  --ds-blur-name: 7px;
+
+  /* ---- Legacy aliases (existing classnames) ---- */
+  --ink: var(--ds-ink);
+  --muted: var(--ds-muted);
+  --paper: var(--ds-bg);
+  --card: var(--ds-surface);
+  --line: var(--ds-line);
+  --clay: var(--ds-teal);
+  --clay-dark: var(--ds-navy-soft);
+  --moss: var(--ds-teal-deep);
+  --lime: var(--ds-sky);
+  --amber-bg: var(--ds-sky-soft);
+  --danger: var(--ds-danger);
+  --danger-bg: var(--ds-danger-soft);
+  --shadow: var(--ds-shadow);
+  --wave: var(--ds-teal);
+  --navy: var(--ds-navy);
+  --navy-2: var(--ds-navy-soft);
+  --navy-3: #2a3350;
+  --serif: var(--font-fraunces), Georgia, serif;
+  --sans: var(--font-outfit), system-ui, sans-serif;
+
+  color: var(--ink);
+  background: var(--paper);
+  font: 16px/1.5 var(--sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: light;
+}

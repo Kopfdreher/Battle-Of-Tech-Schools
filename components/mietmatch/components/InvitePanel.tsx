@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from '@/components/mietmatch/nav'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
-import { applicantCode } from '../lib/anonymize'
 import type { ListGroup } from './ApplicantRow'
 import type { Verdict } from '../lib/match'
 import type { Applicant, LandlordFlat } from '../types'
+import { BlurredName } from './BlurredName'
 
 type Ranked = {
   applicant: Applicant
@@ -168,9 +168,7 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
             count: invitees.length,
             date,
             time,
-            names: invitees.map((row) =>
-              t('applicant.alias', { code: applicantCode(row.applicant.fingerprint || row.applicant.id) }),
-            ),
+            names: invitees.map((row) => row.applicant.displayName),
             fromRank: invitees[0]!.number,
             toRank: invitees[invitees.length - 1]!.number,
             group,
@@ -310,8 +308,14 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
                         count: batch.count,
                       })}
                 </strong>
-                <span>
-                  {formatVisit(batch.date, batch.time)} · {batch.names.slice(0, 3).join(', ')}
+                <span className="invite-sent-meta">
+                  {formatVisit(batch.date, batch.time)} ·{' '}
+                  {batch.names.slice(0, 3).map((name, index) => (
+                    <span key={`${batch.id}-${index}`}>
+                      {index > 0 ? ', ' : ''}
+                      <BlurredName name={name} />
+                    </span>
+                  ))}
                   {batch.names.length > 3 ? ` +${batch.names.length - 3}` : ''}
                 </span>
               </li>
