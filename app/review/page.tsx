@@ -2,6 +2,7 @@ import type { Application, Listing } from "@prisma/client";
 import Link from "next/link";
 
 import { AuthenticityBadge } from "@/components/authenticity/authenticity-badge";
+import { BlurredName } from "@/components/mietmatch/components/BlurredName";
 import { SeedButton } from "@/components/seed-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -140,7 +141,7 @@ export default async function HomePage({
                             href={`/applications/${application.id}`}
                             className="font-medium underline-offset-4 hover:underline"
                           >
-                            <span className="name-blur">{application.applicantName}</span>
+                            <BlurredName name={application.applicantName} />
                           </Link>
                           <p className="text-xs text-zinc-500">
                             {formatEuro(application.income)} / month ·{" "}
@@ -149,6 +150,7 @@ export default async function HomePage({
                         </TableCell>
                         <TableCell>
                           <AuthenticityBadge
+                            variant="compact"
                             applicant={{
                               id: application.id,
                               applicantName: application.applicantName,

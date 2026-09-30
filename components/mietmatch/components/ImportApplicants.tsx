@@ -105,9 +105,9 @@ export function ImportApplicants() {
 
   return (
     <div className="import-stack">
-      <div className="import-modes panel">
+      <div className="import-modes">
         <p className="kicker">{t('import.mode.kicker')}</p>
-        <div className="place-actions">
+        <div className="import-mode-row">
           <label className="check-row">
             <input
               type="radio"
@@ -129,92 +129,108 @@ export function ImportApplicants() {
         </div>
       </div>
 
-      <section className="panel import-panel" id="email-import" aria-label={t('import.email.title')}>
-        <p className="kicker">{t('import.email.kicker')}</p>
-        <h2>{t('import.email.title')}</h2>
-        <p className="lede">{t('import.email.lede')}</p>
-        {mailbox ? (
-          <div className="mailbox-status">
-            <p>
-              <strong>{mailbox.provider === 'gmail' ? 'Gmail' : 'Outlook'}</strong> · {mailbox.email}
+      <div className="import-grid">
+        <section className="import-panel" id="email-import" aria-label={t('import.email.title')}>
+          <div className="import-panel-head">
+            <p className="kicker">{t('import.email.kicker')}</p>
+            <h2>{t('import.email.title')}</h2>
+            <p className="import-revoke">
+              {t('import.email.revokeBefore')}
+              <Link to="/settings">{t('import.email.settingsLink')}</Link>
+              {t('import.email.revokeAfter')}
             </p>
+          </div>
+          {mailbox ? (
+            <div className="mailbox-status">
+              <p>
+                <strong>{mailbox.provider === 'gmail' ? 'Gmail' : 'Outlook'}</strong> · {mailbox.email}
+              </p>
+              <div className="import-actions">
+                <button
+                  type="button"
+                  className="btn slim primary"
+                  onClick={startInboxScan}
+                  disabled={scanning}
+                >
+                  {scanning ? t('import.email.reading') : t('import.email.read')}
+                </button>
+                <button
+                  type="button"
+                  className="btn slim ghost"
+                  onClick={() => {
+                    disconnectMailbox()
+                    setMessage(t('settings.mailbox.revoked'))
+                  }}
+                >
+                  {t('import.email.disconnect')}
+                </button>
+              </div>
+            </div>
+          ) : (
             <div className="import-actions">
-              <button type="button" className="btn primary" onClick={startInboxScan} disabled={scanning}>
-                {scanning ? t('import.email.reading') : t('import.email.read')}
+              <button type="button" className="btn slim primary" onClick={() => setConsentFor('gmail')}>
+                {t('import.email.gmail')}
               </button>
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={() => {
-                  disconnectMailbox()
-                  setMessage(t('settings.mailbox.revoked'))
-                }}
-              >
-                {t('import.email.disconnect')}
+              <button type="button" className="btn slim" onClick={() => setConsentFor('outlook')}>
+                {t('import.email.outlook')}
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="import-actions">
-            <button type="button" className="btn primary" onClick={() => setConsentFor('gmail')}>
-              {t('import.email.gmail')}
-            </button>
-            <button type="button" className="btn" onClick={() => setConsentFor('outlook')}>
-              {t('import.email.outlook')}
-            </button>
-            <LinkSettings />
-          </div>
-        )}
-        {scanning ? (
-          <div className="scan-progress" aria-live="polite">
-            <p>{t(SCAN_STEPS_KEYS[scanStep])}</p>
-            <div className="bar">
-              <span style={{ width: `${((scanStep + 1) / SCAN_STEPS_KEYS.length) * 100}%` }} />
+          )}
+          {scanning ? (
+            <div className="scan-progress" aria-live="polite">
+              <p>{t(SCAN_STEPS_KEYS[scanStep])}</p>
+              <div className="bar">
+                <span style={{ width: `${((scanStep + 1) / SCAN_STEPS_KEYS.length) * 100}%` }} />
+              </div>
             </div>
-          </div>
-        ) : null}
-      </section>
+          ) : null}
+        </section>
 
-      <section className="panel import-panel" id="csv-import" aria-label={t('import.csv.title')}>
-        <p className="kicker">{t('import.csv.kicker')}</p>
-        <h2>{t('import.csv.title')}</h2>
-        <p className="lede">{t('import.csv.lede')}</p>
-        <input
-          ref={fileRef}
-          id={fileId}
-          className="sr-only"
-          type="file"
-          accept=".csv,text/csv"
-          onChange={(event) => {
-            onFile(event.target.files?.[0] ?? null)
-            event.target.value = ''
-          }}
-        />
-        <div className="import-actions">
-          <button type="button" className="btn primary" onClick={() => fileRef.current?.click()}>
-            {t('import.csv.upload')}
-          </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => download('besichtigo-applicants-template.csv', CSV_TEMPLATE)}
-          >
-            {t('import.csv.template')}
-          </button>
-          <button type="button" className="btn" onClick={() => applyCsv(buildDemoCsv(100))}>
-            {t('import.csv.demo')}
-          </button>
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={() => download('besichtigo-100-applicants.csv', buildDemoCsv(100))}
-          >
-            {t('import.csv.downloadDemo')}
-          </button>
-        </div>
-        <CsvPaste onImport={applyCsv} label={t('import.csv.paste')} submitLabel={t('import.csv.pasteSubmit')} />
-        <p className="footnote">{t('import.csv.columns')}</p>
-      </section>
+        <section className="import-panel" id="csv-import" aria-label={t('import.csv.title')}>
+          <div className="import-panel-head">
+            <p className="kicker">{t('import.csv.kicker')}</p>
+            <h2>{t('import.csv.title')}</h2>
+          </div>
+          <input
+            ref={fileRef}
+            id={fileId}
+            className="sr-only"
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(event) => {
+              onFile(event.target.files?.[0] ?? null)
+              event.target.value = ''
+            }}
+          />
+          <div className="import-actions">
+            <button type="button" className="btn slim primary" onClick={() => fileRef.current?.click()}>
+              {t('import.csv.upload')}
+            </button>
+            <button
+              type="button"
+              className="btn slim"
+              onClick={() => download('besichtigo-applicants-template.csv', CSV_TEMPLATE)}
+            >
+              {t('import.csv.template')}
+            </button>
+            <button type="button" className="btn slim" onClick={() => applyCsv(buildDemoCsv(100))}>
+              {t('import.csv.demo')}
+            </button>
+            <button
+              type="button"
+              className="btn slim ghost"
+              onClick={() => download('besichtigo-100-applicants.csv', buildDemoCsv(100))}
+            >
+              {t('import.csv.downloadDemo')}
+            </button>
+          </div>
+          <CsvPaste
+            onImport={applyCsv}
+            label={t('import.csv.paste')}
+            submitLabel={t('import.csv.pasteSubmit')}
+          />
+        </section>
+      </div>
 
       {error ? (
         <p className="error" role="alert">
@@ -235,10 +251,10 @@ export function ImportApplicants() {
             </ul>
             <p className="hint">{t('import.consent.hint', { email: user?.email ?? '' })}</p>
             <div className="place-actions">
-              <button type="button" className="btn primary" onClick={onConsentAllow}>
+              <button type="button" className="btn slim primary" onClick={onConsentAllow}>
                 {t('import.consent.allow')}
               </button>
-              <button type="button" className="btn ghost" onClick={() => setConsentFor(null)}>
+              <button type="button" className="btn slim ghost" onClick={() => setConsentFor(null)}>
                 {t('import.consent.cancel')}
               </button>
             </div>
@@ -246,15 +262,6 @@ export function ImportApplicants() {
         </div>
       ) : null}
     </div>
-  )
-}
-
-function LinkSettings() {
-  const { t } = useLocale()
-  return (
-    <Link className="text-button" to="/settings">
-      {t('import.email.settings')}
-    </Link>
   )
 }
 
@@ -277,18 +284,18 @@ function CsvPaste({
   }
 
   return (
-    <form className="address-box" onSubmit={onSubmit}>
+    <form className="import-paste" onSubmit={onSubmit}>
       <div className="field">
         <label htmlFor="csv-paste">{label}</label>
         <textarea
           id="csv-paste"
-          rows={4}
+          rows={3}
           value={paste}
           onChange={(event) => setPaste(event.target.value)}
           placeholder="name,email,net_income,household_size,contract,..."
         />
       </div>
-      <button className="btn" type="submit">
+      <button className="btn slim primary" type="submit">
         {submitLabel}
       </button>
     </form>

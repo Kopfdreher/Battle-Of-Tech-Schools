@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { AuthenticityBadge } from "@/components/authenticity/authenticity-badge";
 import { AuthenticityCard } from "@/components/authenticity/authenticity-card";
+import { BlurredName } from "@/components/mietmatch/components/BlurredName";
 import { EvaluateButton } from "@/components/evaluate-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -74,19 +74,9 @@ export default async function ApplicationPage({
 
       <header className="flex flex-col gap-2">
         <p className="text-sm text-zinc-500">{listing.address}</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            <span className="name-blur">{application.applicantName}</span>
-          </h1>
-          <AuthenticityBadge
-            applicant={{
-              id: application.id,
-              applicantName: application.applicantName,
-              income: Number(application.income),
-              hasPermanentContract: application.hasPermanentContract,
-            }}
-          />
-        </div>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          <BlurredName as="span" name={application.applicantName} />
+        </h1>
         <p className="text-sm capitalize text-zinc-600">
           Status: {application.status}
         </p>

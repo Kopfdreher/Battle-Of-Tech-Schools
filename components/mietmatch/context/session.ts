@@ -15,6 +15,7 @@ export type SessionValue = {
   invitedIds: string[]
   invitations: Invitation[]
   marks: Record<string, ApplicantMark>
+  namesVisible: boolean
   signup: (name: string, email: string, password: string) => Promise<void>
   login: (email: string, password: string) => Promise<void>
   logout: () => void
@@ -36,6 +37,7 @@ export type SessionValue = {
   cancelSlot: (slot: { date: string; time: string }) => void
   clearInvited: () => void
   setApplicantMark: (id: string, mark: ApplicantMark | null) => void
+  setNamesVisible: (visible: boolean) => void
 }
 
 export const SessionContext = createContext<SessionValue | null>(null)

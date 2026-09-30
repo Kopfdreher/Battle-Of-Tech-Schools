@@ -1,26 +1,27 @@
 'use client'
 
-import { useLocale } from '../context/LocaleContext'
+import Image from 'next/image'
 
-export function Brand() {
-  const { t } = useLocale()
+type BrandProps = {
+  /** Larger mark for auth / onboarding heroes */
+  size?: 'sm' | 'md' | 'lg'
+}
+
+export function Brand({ size = 'sm' }: BrandProps) {
+  const markPx = size === 'lg' ? 72 : size === 'md' ? 48 : 36
+
   return (
-    <div className="brand">
+    <div className={`brand brand-${size}`}>
       <span className="mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" width="22" height="22">
-          <path
-            d="M6 14.5 16 6l10 8.5V26H6V14.5Z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <path d="M13 26v-7h6v7" fill="none" stroke="currentColor" strokeWidth="2" />
-        </svg>
+        <Image
+          src="/brand/besichtigo-mark.png"
+          alt=""
+          width={markPx}
+          height={Math.round(markPx * 0.89)}
+          priority
+        />
       </span>
-      <span className="brand-text">
-        <strong>BesichtiGo</strong>
-        <small>{t('brand.tagline')}</small>
-      </span>
+      <strong className="brand-name">BesichtiGo</strong>
     </div>
   )
 }

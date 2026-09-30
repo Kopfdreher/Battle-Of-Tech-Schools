@@ -15,7 +15,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           <LanguageSwitcher compact />
         </div>
         <div className="auth-story-body">
-          <Brand />
+          <Brand size="lg" />
           <h1>{t('auth.title')}</h1>
           <p className="lede">{t('auth.lede')}</p>
           <ol className="points">
