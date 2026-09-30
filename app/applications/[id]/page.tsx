@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { AuthenticityBadge } from "@/components/authenticity/authenticity-badge";
 import { AuthenticityCard } from "@/components/authenticity/authenticity-card";
+import { BlurredName } from "@/components/mietmatch/components/BlurredName";
 import { EvaluateButton } from "@/components/evaluate-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -75,7 +75,7 @@ export default async function ApplicationPage({
       <header className="flex flex-col gap-2">
         <p className="text-sm text-zinc-500">{listing.address}</p>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {application.displayName}
+          <BlurredName as="span" name={application.displayName} />
         </h1>
         <p className="text-sm capitalize text-zinc-600">
           Status: {application.status}

@@ -5,19 +5,16 @@ import { Link } from '@/components/mietmatch/nav'
 import { ApplicantRow, type ListGroup } from '../components/ApplicantRow'
 import { CriteriaBoard } from '../components/CriteriaBoard'
 import { InvitePanel } from '../components/InvitePanel'
+import { NameVisibilityToggle } from '../components/NameVisibilityToggle'
 import { useLocale } from '../context/LocaleContext'
 import { useSession } from '../context/session'
 import { compareApplicants, evaluateApplicant, matchTone } from '../lib/match'
-
-type MatchFilter = 'all' | 'strong' | 'weak' | 'duplicates'
 
 export function InboxPage() {
   const { user, requirements, flat, applicants, marks, removeApplicant, loadDemoBoard } = useSession()
   const { t } = useLocale()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [listGroup, setListGroup] = useState<ListGroup>('all')
-  const [filter, setFilter] = useState<MatchFilter>('all')
-  const [minPercent, setMinPercent] = useState(0)
 
   const ranked = useMemo(() => {
     if (!flat) return []
@@ -38,37 +35,11 @@ export function InboxPage() {
     () => ranked.filter((row) => marks[row.applicant.id] === 'like').length,
     [ranked, marks],
   )
-  const unsureCount = useMemo(
-    () => ranked.filter((row) => marks[row.applicant.id] === 'unsure').length,
-    [ranked, marks],
-  )
-
-  const groupRows = useMemo(() => {
-    if (listGroup === 'like') return ranked.filter((row) => marks[row.applicant.id] === 'like')
-    if (listGroup === 'unsure') return ranked.filter((row) => marks[row.applicant.id] === 'unsure')
-    return ranked
-  }, [ranked, marks, listGroup])
 
   const rows = useMemo(() => {
-    const fingerprints = new Map<string, number>()
-    for (const row of ranked) {
-      fingerprints.set(row.applicant.fingerprint, (fingerprints.get(row.applicant.fingerprint) ?? 0) + 1)
-    }
-
-    return groupRows
-      .map((row) => ({
-        ...row,
-        isDuplicate: (fingerprints.get(row.applicant.fingerprint) ?? 0) > 1,
-      }))
-      .filter((row) => {
-        if (listGroup !== 'all') return true
-        if (row.verdict.matchRate < minPercent) return false
-        if (filter === 'strong') return matchTone(row.verdict) === 'good'
-        if (filter === 'weak') return matchTone(row.verdict) === 'bad'
-        if (filter === 'duplicates') return row.isDuplicate
-        return true
-      })
-  }, [ranked, groupRows, filter, minPercent, listGroup])
+    if (listGroup === 'like') return ranked.filter((row) => marks[row.applicant.id] === 'like')
+    return ranked
+  }, [ranked, marks, listGroup])
 
   const goodCount = useMemo(
     () => ranked.filter((row) => matchTone(row.verdict) === 'good').length,
@@ -141,24 +112,23 @@ export function InboxPage() {
 
             <section className="shortlist-panel" aria-label="Applicants">
               <div className="invite-side-head">
-                <h2>
-                  {listGroup === 'like'
-                    ? t('inbox.list.liked')
-                    : listGroup === 'unsure'
-                      ? t('inbox.list.unsure')
-                      : t('inbox.list.all')}
-                </h2>
-                <span>
-                  {listGroup === 'all'
-                    ? applicants.length === 0
-                      ? t('inbox.zero')
-                      : t('inbox.showing', {
-                          shown: rows.length,
-                          total: applicants.length,
-                          green: goodCount,
-                        })
-                    : t('inbox.inList', { count: rows.length })}
-                </span>
+                <div className="invite-side-head-copy">
+                  <h2>
+                    {listGroup === 'like' ? t('inbox.list.liked') : t('inbox.list.all')}
+                  </h2>
+                  <span>
+                    {listGroup === 'all'
+                      ? applicants.length === 0
+                        ? t('inbox.zero')
+                        : t('inbox.showing', {
+                            shown: rows.length,
+                            total: applicants.length,
+                            green: goodCount,
+                          })
+                      : t('inbox.inList', { count: rows.length })}
+                  </span>
+                </div>
+                {applicants.length > 0 ? <NameVisibilityToggle /> : null}
               </div>
 
               {applicants.length > 0 ? (
@@ -167,7 +137,6 @@ export function InboxPage() {
                     [
                       ['all', t('inbox.tab.all', { count: ranked.length })],
                       ['like', t('inbox.tab.liked', { count: likedCount })],
-                      ['unsure', t('inbox.tab.unsure', { count: unsureCount })],
                     ] as const
                   ).map(([id, label]) => (
                     <button
@@ -187,44 +156,6 @@ export function InboxPage() {
                 </div>
               ) : null}
 
-              {applicants.length > 0 && listGroup === 'all' ? (
-                <div className="filter-bar shortlist-filters" aria-label={t('inbox.list.all')}>
-                  <div className="filter-row">
-                    {(
-                      [
-                        ['all', t('inbox.filter.all')],
-                        ['strong', t('inbox.filter.strong')],
-                        ['weak', t('inbox.filter.weak')],
-                        ['duplicates', t('inbox.filter.duplicates')],
-                      ] as const
-                    ).map(([id, label]) => (
-                      <button
-                        key={id}
-                        type="button"
-                        className={filter === id ? 'filter-chip on' : 'filter-chip'}
-                        onClick={() => setFilter(id)}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                  <label className="tuner">
-                    <span>
-                      {t('inbox.minMatch')}
-                      <strong>{minPercent}%</strong>
-                    </span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={5}
-                      value={minPercent}
-                      onChange={(event) => setMinPercent(Number(event.target.value))}
-                    />
-                  </label>
-                </div>
-              ) : null}
-
               {applicants.length === 0 ? (
                 <p className="empty">
                   {t('inbox.empty.none')}{' '}
@@ -234,18 +165,13 @@ export function InboxPage() {
                 <p className="empty">{t('inbox.empty.criteria')}</p>
               ) : rows.length === 0 ? (
                 <p className="empty">
-                  {listGroup === 'like'
-                    ? t('inbox.empty.liked')
-                    : listGroup === 'unsure'
-                      ? t('inbox.empty.unsure')
-                      : t('inbox.empty.filter')}
+                  {listGroup === 'like' ? t('inbox.empty.liked') : t('inbox.empty.none')}
                 </p>
               ) : (
                 <div className="invite-list shortlist-rows">
                   {rows.map((row) => (
                     <ApplicantRow
                       key={row.applicant.id}
-                      number={row.number}
                       applicant={row.applicant}
                       verdict={row.verdict}
                       open={selectedId === row.applicant.id}

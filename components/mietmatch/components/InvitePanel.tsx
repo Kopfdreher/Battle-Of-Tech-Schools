@@ -64,13 +64,11 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
 
   function groupLabel(id: ListGroup) {
     if (id === 'like') return t('invite.group.like')
-    if (id === 'unsure') return t('invite.group.unsure')
     return t('invite.group.all')
   }
 
   const pool = useMemo(() => {
     if (group === 'like') return ranked.filter((row) => marks[row.applicant.id] === 'like')
-    if (group === 'unsure') return ranked.filter((row) => marks[row.applicant.id] === 'unsure')
     return ranked
   }, [ranked, marks, group])
 
@@ -120,13 +118,7 @@ export function InvitePanel({ flat, ranked, landlordName, group }: Props) {
     setError(null)
     clampCountText()
     if (pool.length === 0) {
-      setError(
-        group === 'like'
-          ? t('invite.error.noLiked')
-          : group === 'unsure'
-            ? t('invite.error.noUnsure')
-            : t('invite.error.none'),
-      )
+      setError(group === 'like' ? t('invite.error.noLiked') : t('invite.error.none'))
       return
     }
     if (maxBatch === 0) {

@@ -1,17 +1,19 @@
 'use client'
 
+import { useMemo } from 'react'
 import { Link } from '@/components/mietmatch/nav'
 import { AuthenticityBadge } from '@/components/authenticity/authenticity-badge'
+import { evaluateAuthenticity } from '@/lib/authenticity/engine'
+import { combinedMatchPercent } from '@/lib/authenticity/score'
 import { useLocale } from '../context/LocaleContext'
 import { useSession, type ApplicantMark } from '../context/session'
-import { matchTone, type Verdict } from '../lib/match'
+import { STRONG_MATCH_RATE, type Verdict } from '../lib/match'
 import type { Applicant } from '../types'
 import { BlurredName } from './BlurredName'
 
-export type ListGroup = 'all' | 'like' | 'unsure'
+export type ListGroup = 'all' | 'like'
 
 type Props = {
-  number: number
   applicant: Applicant
   verdict: Verdict
   open: boolean
@@ -31,24 +33,7 @@ function LikeIcon() {
   )
 }
 
-function UnsureIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M9.5 9.2a2.6 2.6 0 0 1 5 1c0 1.6-2.5 1.9-2.5 3.4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <circle cx="12" cy="17" r="1.1" fill="currentColor" />
-    </svg>
-  )
-}
-
 export function ApplicantRow({
-  number,
   applicant,
   verdict,
   open,
@@ -58,7 +43,18 @@ export function ApplicantRow({
 }: Props) {
   const { marks, setApplicantMark } = useSession()
   const { t } = useLocale()
-  const tone = matchTone(verdict)
+  const report = useMemo(
+    () =>
+      evaluateAuthenticity({
+        id: applicant.id,
+        applicantName: applicant.displayName,
+        income: applicant.netIncomeMonthly,
+        hasPermanentContract: applicant.contractType === 'permanent',
+      }),
+    [applicant.id, applicant.displayName, applicant.netIncomeMonthly, applicant.contractType],
+  )
+  const displayRate = combinedMatchPercent(verdict.matchRate, report.trustIndex)
+  const tone = displayRate >= STRONG_MATCH_RATE ? 'good' : 'bad'
   const mark = marks[applicant.id] ?? null
 
   function toggleMark(next: ApplicantMark) {
@@ -74,11 +70,7 @@ export function ApplicantRow({
   }
 
   const removeLabel =
-    listGroup === 'like'
-      ? t('row.removeLiked')
-      : listGroup === 'unsure'
-        ? t('row.removeUnsure')
-        : t('row.removeAll')
+    listGroup === 'like' ? t('row.removeLiked') : t('row.removeAll')
 
   const matchLabel = tone === 'good' ? t('row.strong') : t('row.weak')
   const matchShort = tone === 'good' ? t('row.strongShort') : t('row.weakShort')
@@ -94,37 +86,31 @@ export function ApplicantRow({
         tone,
         open ? 'open' : '',
         mark === 'like' ? 'marked-like' : '',
-        mark === 'unsure' ? 'marked-unsure' : '',
       ]
         .filter(Boolean)
         .join(' ')}
     >
       <div className="invite-head-row">
         <button type="button" className="invite-head" onClick={onToggle} aria-expanded={open}>
-          <span className="invite-num" aria-hidden="true">
-            {number}
-          </span>
           <span className="invite-copy">
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              <BlurredName as="strong" name={applicant.displayName} />
-              <AuthenticityBadge
-                applicant={{
-                  id: applicant.id,
-                  applicantName: applicant.displayName,
-                  income: applicant.netIncomeMonthly,
-                  hasPermanentContract: applicant.contractType === 'permanent',
-                }}
-                size="sm"
-              />
-            </span>
+            <BlurredName as="strong" name={applicant.displayName} />
             <small>
               {peopleLabel} · {applicant.contractType} · {matchLabel}
             </small>
           </span>
-          <span className="invite-fit">
-            <strong>{verdict.matchRate}%</strong>
-            <span>{matchShort}</span>
-          </span>
+          <AuthenticityBadge
+            variant="score"
+            className="invite-fit"
+            matchRate={verdict.matchRate}
+            caption={matchShort}
+            initialReport={report}
+            applicant={{
+              id: applicant.id,
+              applicantName: applicant.displayName,
+              income: applicant.netIncomeMonthly,
+              hasPermanentContract: applicant.contractType === 'permanent',
+            }}
+          />
         </button>
 
         <div className="row-mark-icons" role="group" aria-label="Applicant">
@@ -143,19 +129,6 @@ export function ApplicantRow({
           </button>
           <button
             type="button"
-            className={mark === 'unsure' ? 'row-mark-btn unsure on' : 'row-mark-btn unsure'}
-            aria-pressed={mark === 'unsure'}
-            title={mark === 'unsure' ? t('row.unsureOn') : t('row.unsure')}
-            onClick={(event) => {
-              event.stopPropagation()
-              toggleMark('unsure')
-            }}
-          >
-            <UnsureIcon />
-            <span className="sr-only">{mark === 'unsure' ? t('row.unsureOn') : t('row.unsure')}</span>
-          </button>
-          <button
-            type="button"
             className="row-mark-btn remove"
             title={removeLabel}
             onClick={(event) => {
@@ -171,6 +144,22 @@ export function ApplicantRow({
 
       {open ? (
         <div className="invite-body">
+          <section className="trust-panel" aria-label={t('row.trustTitle')}>
+            <div className="trust-panel-copy">
+              <p className="kicker">{t('row.trustTitle')}</p>
+              <p className="hint">{t('row.trustHint')}</p>
+            </div>
+            <AuthenticityBadge
+              variant="verify"
+              initialReport={report}
+              applicant={{
+                id: applicant.id,
+                applicantName: applicant.displayName,
+                income: applicant.netIncomeMonthly,
+                hasPermanentContract: applicant.contractType === 'permanent',
+              }}
+            />
+          </section>
           {verdict.flags.length > 0 ? (
             <ul className="flag-list">
               {verdict.flags.map((flag) => (
@@ -178,12 +167,11 @@ export function ApplicantRow({
               ))}
             </ul>
           ) : null}
-          <p className="invite-mail">{applicant.messagePreview}</p>
           <section className="match-panel" aria-label="Applicant fit">
             <div className="match-panel-head">
               <p className="kicker">{matchLabel}</p>
               <p className="match-rate-line">
-                {t('row.fit')} <strong>{verdict.matchRate}%</strong>
+                {t('row.fit')} <strong>{displayRate}%</strong>
               </p>
             </div>
             <ul className="match-list">
@@ -207,15 +195,15 @@ export function ApplicantRow({
             </ul>
           </section>
           <div className="place-actions mark-actions">
-            <button type="button" className="btn" onClick={removeFromCurrentList}>
+            <button type="button" className="btn slim" onClick={removeFromCurrentList}>
               {removeLabel}
             </button>
             {listGroup !== 'all' ? (
-              <button type="button" className="btn ghost" onClick={onRemoveFromBoard}>
+              <button type="button" className="btn slim ghost" onClick={onRemoveFromBoard}>
                 {t('row.removeBoard')}
               </button>
             ) : null}
-            <Link className="btn" to="/applicants/$id" params={{ id: applicant.id }}>
+            <Link className="btn slim primary" to="/applicants/$id" params={{ id: applicant.id }}>
               {t('row.open')}
             </Link>
           </div>

@@ -61,46 +61,69 @@ export function AppointmentsPage() {
 
   return (
     <div className="appointments">
-      <header className="page-head">
+      <header className="page-head appointments-head">
         <p className="kicker">{t('appointments.kicker')}</p>
         <h1>{t('appointments.title')}</h1>
         <p className="lede">{t('appointments.lede')}</p>
-        {flat ? <p className="hint">{flat.address}</p> : null}
+        {flat ? <p className="appointments-flat">{flat.address}</p> : null}
       </header>
 
       {invitations.length === 0 ? (
-        <section className="panel">
-          <p>{t('appointments.empty')}</p>
-          <Link className="btn" to="/">
+        <section className="panel appointments-empty">
+          <p className="kicker">{t('appointments.kicker')}</p>
+          <h2>{t('appointments.empty')}</h2>
+          <p className="hint">{t('appointments.lede')}</p>
+          <Link className="btn slim primary" to="/">
             {t('appointments.openShortlist')}
           </Link>
         </section>
       ) : (
-        <div className="appointment-list">
-          {upcoming.map((slot) => (
-            <AppointmentCard
-              key={`${slot.date}|${slot.time}`}
-              slot={slot}
-              past={false}
-              locale={locale}
-              people={people}
-              onReschedule={rescheduleSlot}
-              onRemove={cancelInvitation}
-              onCancel={cancelSlot}
-            />
-          ))}
-          {past.map((slot) => (
-            <AppointmentCard
-              key={`${slot.date}|${slot.time}`}
-              slot={slot}
-              past
-              locale={locale}
-              people={people}
-              onReschedule={rescheduleSlot}
-              onRemove={cancelInvitation}
-              onCancel={cancelSlot}
-            />
-          ))}
+        <div className="appointment-sections">
+          {upcoming.length > 0 ? (
+            <section className="appointment-section" aria-label={t('appointments.upcoming')}>
+              <div className="appointment-section-head">
+                <h2>{t('appointments.upcoming')}</h2>
+                <span>{upcoming.length}</span>
+              </div>
+              <div className="appointment-list">
+                {upcoming.map((slot) => (
+                  <AppointmentCard
+                    key={`${slot.date}|${slot.time}`}
+                    slot={slot}
+                    past={false}
+                    locale={locale}
+                    people={people}
+                    onReschedule={rescheduleSlot}
+                    onRemove={cancelInvitation}
+                    onCancel={cancelSlot}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {past.length > 0 ? (
+            <section className="appointment-section" aria-label={t('appointments.past')}>
+              <div className="appointment-section-head">
+                <h2>{t('appointments.past')}</h2>
+                <span>{past.length}</span>
+              </div>
+              <div className="appointment-list">
+                {past.map((slot) => (
+                  <AppointmentCard
+                    key={`${slot.date}|${slot.time}`}
+                    slot={slot}
+                    past
+                    locale={locale}
+                    people={people}
+                    onReschedule={rescheduleSlot}
+                    onRemove={cancelInvitation}
+                    onCancel={cancelSlot}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
       )}
     </div>
@@ -136,41 +159,43 @@ function AppointmentCard({
   }
 
   return (
-    <article className="panel appointment-card">
+    <article className={past ? 'appointment-card past' : 'appointment-card'}>
       <header className="appointment-head">
-        <div>
+        <div className="appointment-head-copy">
           <p className="kicker">{past ? t('appointments.past') : t('appointments.upcoming')}</p>
-          <h2>{formatSlot(slot.date, slot.time, locale)}</h2>
+          <h3>{formatSlot(slot.date, slot.time, locale)}</h3>
           <p className="hint">{t('appointments.count', { count: slot.invitations.length })}</p>
         </div>
       </header>
 
-      <form className="appointment-reschedule" onSubmit={onSubmit} aria-label={t('appointments.reschedule')}>
-        <label className="field">
-          <span>{t('invite.date')}</span>
-          <input
-            type="date"
-            value={date}
-            min={new Date().toISOString().slice(0, 10)}
-            onChange={(event) => setDate(event.target.value)}
-            required
-          />
-        </label>
-        <label className="field">
-          <span>{t('invite.time')}</span>
-          <input type="time" value={time} onChange={(event) => setTime(event.target.value)} required />
-        </label>
-        <button className="btn" type="submit" disabled={unchanged || !date || !time}>
-          {t('appointments.save')}
-        </button>
-      </form>
+      {!past ? (
+        <form className="appointment-reschedule" onSubmit={onSubmit} aria-label={t('appointments.reschedule')}>
+          <label className="field">
+            <span>{t('invite.date')}</span>
+            <input
+              type="date"
+              value={date}
+              min={new Date().toISOString().slice(0, 10)}
+              onChange={(event) => setDate(event.target.value)}
+              required
+            />
+          </label>
+          <label className="field">
+            <span>{t('invite.time')}</span>
+            <input type="time" value={time} onChange={(event) => setTime(event.target.value)} required />
+          </label>
+          <button className="btn slim primary" type="submit" disabled={unchanged || !date || !time}>
+            {t('appointments.save')}
+          </button>
+        </form>
+      ) : null}
 
       <ul className="appointment-people">
         {slot.invitations.map((invitation) => {
           const applicant = people.get(invitation.applicantId)
           return (
             <li key={invitation.id} className="appointment-person">
-              <div>
+              <div className="appointment-person-copy">
                 <strong>
                   {applicant ? (
                     <Link to="/applicants/$id" params={{ id: applicant.id }}>
@@ -182,7 +207,7 @@ function AppointmentCard({
                 </strong>
                 {applicant?.email ? <small>{maskEmail(applicant.email)}</small> : null}
               </div>
-              <button type="button" className="text-button" onClick={() => onRemove(invitation.id)}>
+              <button type="button" className="btn slim ghost" onClick={() => onRemove(invitation.id)}>
                 {t('appointments.remove')}
               </button>
             </li>
@@ -190,11 +215,17 @@ function AppointmentCard({
         })}
       </ul>
 
-      <div className="appointment-actions">
-        <button type="button" className="btn danger" onClick={() => onCancel({ date: slot.date, time: slot.time })}>
-          {t('appointments.cancel')}
-        </button>
-      </div>
+      {!past ? (
+        <div className="appointment-actions">
+          <button
+            type="button"
+            className="btn slim danger"
+            onClick={() => onCancel({ date: slot.date, time: slot.time })}
+          >
+            {t('appointments.cancel')}
+          </button>
+        </div>
+      ) : null}
     </article>
   )
 }

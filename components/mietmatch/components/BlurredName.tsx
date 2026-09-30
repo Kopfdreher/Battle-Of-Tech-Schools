@@ -1,16 +1,24 @@
 'use client'
 
+import { useSession } from '../context/session'
+
 type Props = {
   name: string
   className?: string
   as?: 'span' | 'strong' | 'h1' | 'h2'
 }
 
-/** Show a name visually blurred for privacy (real text remains in the DOM for layout). */
+/** Real name by default; blur when the landlord turns names off. */
 export function BlurredName({ name, className = '', as: Tag = 'span' }: Props) {
+  const { namesVisible } = useSession()
+  const label = name || 'Applicant'
+
   return (
-    <Tag className={['name-blur', className].filter(Boolean).join(' ')} title="Name hidden">
-      {name || 'Applicant'}
+    <Tag
+      className={[namesVisible ? 'name-clear' : 'name-blur', className].filter(Boolean).join(' ')}
+      title={namesVisible ? label : 'Name hidden'}
+    >
+      {label}
     </Tag>
   )
 }

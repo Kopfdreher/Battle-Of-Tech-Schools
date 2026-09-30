@@ -26,6 +26,10 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "BesichtiGo · Landlord shortlist",
   description: "Berlin landlord shortlist, with listings and applications from the database",
+  icons: {
+    icon: "/brand/besichtigo-mark.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export const dynamic = "force-dynamic";

@@ -14,6 +14,7 @@ import {
   invitedKey,
   mailboxKey,
   marksKey,
+  namesVisibleKey,
   onboardingKey,
   readJson,
   removeKey,
@@ -31,7 +32,7 @@ import type {
   User,
 } from '../types'
 import { SessionContext, type ApplicantMark, type SessionValue } from './session'
-import { anonymizeApplicantRecord, isCodedAlias } from '../lib/anonymize'
+import { anonymizeApplicantRecord, isCodedAlias, resolveDisplayName } from '../lib/anonymize'
 
 type SessionState = {
   user: User | null
@@ -55,11 +56,16 @@ function restoreDisplayName<T extends Applicant>(item: T): T {
   const seed = SAMPLE_APPLICANTS.find(
     (sample) =>
       sample.fingerprint === item.fingerprint ||
-      (item.email && sample.email.toLowerCase() === item.email.toLowerCase()),
+      (item.email &&
+        !item.email.includes('•') &&
+        sample.email.toLowerCase() === item.email.toLowerCase()),
   )
-  if (seed) return { ...item, displayName: seed.displayName }
-  // Fall back to a name-shaped label so blur still looks like a name, not a code.
-  return { ...item, displayName: 'Applicant name' }
+  const next = resolveDisplayName(
+    item.displayName,
+    item.fingerprint || item.id,
+    seed?.displayName,
+  )
+  return { ...item, displayName: next }
 }
 
 function loadFlat(userId: string) {
@@ -141,7 +147,11 @@ type ServerBoard = { flat: LandlordFlat; applicants: Applicant[] }
 
 function withBoard(state: SessionState, board: ServerBoard | null): SessionState {
   if (!board) return state
-  return { ...state, flat: board.flat, applicants: board.applicants.map((item) => anonymizeApplicant(item)) }
+  return {
+    ...state,
+    flat: board.flat,
+    applicants: board.applicants.map((item) => anonymizeApplicant(restoreDisplayName(item))),
+  }
 }
 
 export function SessionProvider({
@@ -153,6 +163,7 @@ export function SessionProvider({
 }) {
   const [state, setState] = useState<SessionState>(() => withBoard(emptyState(), serverBoard))
   const [ready, setReady] = useState(false)
+  const [namesVisible, setNamesVisibleState] = useState(true)
   const session = authClient.useSession()
 
   useEffect(() => {
@@ -163,6 +174,7 @@ export function SessionProvider({
 
     if (!betterUser) {
       setState(withBoard(emptyState(), serverBoard))
+      setNamesVisibleState(true)
       setReady(true)
       return
     }
@@ -170,6 +182,8 @@ export function SessionProvider({
     const flat = loadFlat(userId!)
     const applicants = loadApplicants(userId!)
     const mailbox = loadMailbox(userId!)
+    const storedNames = readJson<boolean | null>(namesVisibleKey(userId!), null)
+    setNamesVisibleState(storedNames === null ? true : Boolean(storedNames))
     setState(withBoard({
       user: { id: betterUser.id, name: betterUser.name, email: betterUser.email },
       onboardingDone: resolveOnboardingDone(userId!, flat, applicants, mailbox),
@@ -183,6 +197,11 @@ export function SessionProvider({
     }, serverBoard))
     setReady(true)
   }, [serverBoard, session.isPending, session.data?.user])
+
+  useEffect(() => {
+    if (!state.user) return
+    writeJson(namesVisibleKey(state.user.id), namesVisible)
+  }, [state.user, namesVisible])
 
   useEffect(() => {
     if (!state.user) return
@@ -490,10 +509,15 @@ export function SessionProvider({
     })
   }, [])
 
+  const setNamesVisible = useCallback((visible: boolean) => {
+    setNamesVisibleState(visible)
+  }, [])
+
   const value = useMemo<SessionValue>(
     () => ({
       ready,
       ...state,
+      namesVisible,
       signup,
       login,
       logout,
@@ -515,10 +539,12 @@ export function SessionProvider({
       cancelSlot,
       clearInvited,
       setApplicantMark,
+      setNamesVisible,
     }),
     [
       ready,
       state,
+      namesVisible,
       signup,
       login,
       logout,
@@ -540,6 +566,7 @@ export function SessionProvider({
       cancelSlot,
       clearInvited,
       setApplicantMark,
+      setNamesVisible,
     ],
   )
 
