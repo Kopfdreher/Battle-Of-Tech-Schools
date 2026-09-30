@@ -11,7 +11,7 @@ import { useSession } from '../context/session'
 import { compareApplicants, evaluateApplicant, matchTone } from '../lib/match'
 
 export function InboxPage() {
-  const { user, requirements, flat, applicants, marks, removeApplicant, loadDemoBoard } = useSession()
+  const { user, requirements, flat, applicants, marks, removeApplicant } = useSession()
   const { t } = useLocale()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [listGroup, setListGroup] = useState<ListGroup>('all')
@@ -49,31 +49,19 @@ export function InboxPage() {
   return (
     <div className="dashboard">
       {!flat ? (
-        <>
-          <header className="dash-head dash-head-compact">
-            <div className="place-actions dash-head-actions">
-              <Link className="btn box-btn" to="/import">
-                {t('inbox.getApplicants')}
-              </Link>
-              <button type="button" className="btn box-btn" onClick={loadDemoBoard}>
-                {t('inbox.reloadDemo')}
-              </button>
-            </div>
-          </header>
-          <section className="panel address-box">
-            <p className="kicker">{t('inbox.tryKicker')}</p>
-            <h2>{t('inbox.tryTitle')}</h2>
-            <p className="lede">{t('inbox.tryLede')}</p>
-            <div className="place-actions">
-              <button type="button" className="btn primary" onClick={loadDemoBoard}>
-                {t('inbox.loadDemo')}
-              </button>
-              <Link className="btn" to="/address">
-                {t('inbox.addFlat')}
-              </Link>
-            </div>
-          </section>
-        </>
+        <section className="panel address-box inbox-start">
+          <p className="kicker">{t('inbox.flat')}</p>
+          <h2>{t('inbox.addFlat')}</h2>
+          <p className="lede">{t('inbox.needFlat')}</p>
+          <div className="place-actions">
+            <Link className="btn slim primary" to="/address">
+              {t('inbox.addFlat')}
+            </Link>
+            <Link className="btn slim" to="/import">
+              {t('inbox.getApplicants')}
+            </Link>
+          </div>
+        </section>
       ) : (
         <>
           <header className="board-toolbar" aria-label="Listing and actions">

@@ -130,7 +130,8 @@ const en: Dict = {
   'inbox.tryLede':
     'One click fills a Berlin flat (Templiner Straße 7) plus 100 sample applicants with match scores — or add your own address instead.',
   'inbox.loadDemo': 'Load demo flat + 100 applicants',
-  'inbox.addFlat': 'Add your own flat',
+  'inbox.addFlat': 'Add your flat',
+  'inbox.needFlat': 'Add a Berlin listing address to start ranking applicants.',
   'inbox.list.all': 'All applicants',
   'inbox.list.liked': 'Liked',
   'inbox.list.unsure': 'Not sure',
@@ -531,7 +532,8 @@ const de: Dict = {
   'inbox.tryLede':
     'Ein Klick füllt eine Berliner Wohnung (Templiner Straße 7) plus 100 Beispielbewerber mit Match-Werten — oder fügen Sie Ihre eigene Adresse hinzu.',
   'inbox.loadDemo': 'Demo-Wohnung + 100 Bewerber',
-  'inbox.addFlat': 'Eigene Wohnung hinzufügen',
+  'inbox.addFlat': 'Wohnung hinzufügen',
+  'inbox.needFlat': 'Fügen Sie eine Berliner Anzeigenadresse hinzu, um Bewerber zu bewerten.',
   'inbox.list.all': 'Alle Bewerber',
   'inbox.list.liked': 'Gefällt mir',
   'inbox.list.unsure': 'Unsicher',
