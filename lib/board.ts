@@ -1,5 +1,5 @@
 import type { Applicant, BerlinFacts, LandlordFlat, ContractType, EmploymentType } from '@/components/mietmatch/types'
-import { applicantCode } from '@/components/mietmatch/lib/anonymize'
+import { isPlaceholderFlat } from '@/components/mietmatch/lib/flat-setup'
 import { getPrisma } from '@/lib/db'
 
 export type BoardSet = {
@@ -63,7 +63,15 @@ export async function loadBoard(userId?: string): Promise<Board | null> {
       where: { userId },
       orderBy: { createdAt: 'desc' },
     })
-    if (listings.length === 0) return null
+    const realListings = listings.filter(
+      (listing) =>
+        !isPlaceholderFlat({
+          id: listing.id,
+          address: listing.address,
+          sourceNote: listing.title,
+        }),
+    )
+    if (realListings.length === 0) return null
 
     const applications = await db.application.findMany({
       where: { userId },
@@ -71,7 +79,7 @@ export async function loadBoard(userId?: string): Promise<Board | null> {
     })
 
     return {
-      sets: listings.map((listing) => ({
+      sets: realListings.map((listing) => ({
         flat: {
           id: listing.id,
           address: listing.address,

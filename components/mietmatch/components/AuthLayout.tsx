@@ -1,43 +1,32 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useLocale } from '../context/LocaleContext'
 import { Brand } from './Brand'
 import { LanguageSwitcher } from './LanguageSwitcher'
 
-export function AuthLayout({ children }: { children: ReactNode }) {
-  const { t } = useLocale()
+export function AuthLayout({
+  children,
+  kicker,
+}: {
+  children: ReactNode
+  kicker?: string
+}) {
   return (
-    <div className="auth">
-      <section className="auth-story">
-        <div className="auth-story-top">
-          <p className="auth-audience">{t('auth.audience')}</p>
-          <LanguageSwitcher compact />
+    <div className="auth" aria-label="BesichtiGo">
+      <header className="auth-top">
+        <div className="auth-brand-frame">
+          <Brand size="sm" />
         </div>
-        <div className="auth-story-body">
-          <Brand size="lg" />
-          <h1>{t('auth.title')}</h1>
-          <p className="lede">{t('auth.lede')}</p>
-          <ol className="points">
-            <li>
-              <span>1</span>
-              <p>{t('auth.step1')}</p>
-            </li>
-            <li>
-              <span>2</span>
-              <p>{t('auth.step2')}</p>
-            </li>
-            <li>
-              <span>3</span>
-              <p>{t('auth.step3')}</p>
-            </li>
-          </ol>
-          <p className="auth-foot">{t('auth.foot')}</p>
+      </header>
+      <main className="auth-panel">
+        <div className="auth-card panel">
+          <div className="auth-card-head">
+            {kicker ? <p className="kicker">{kicker}</p> : <span />}
+            <LanguageSwitcher compact />
+          </div>
+          {children}
         </div>
-      </section>
-      <section className="auth-panel">
-        <div className="auth-card panel">{children}</div>
-      </section>
+      </main>
     </div>
   )
 }

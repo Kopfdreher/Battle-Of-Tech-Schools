@@ -48,8 +48,7 @@ export function SignupPage() {
   }
 
   return (
-    <AuthLayout>
-      <p className="kicker">{t('signup.kicker')}</p>
+    <AuthLayout kicker={t('signup.kicker')}>
       <h2>{t('signup.title')}</h2>
       <p className="lede">{t('signup.lede')}</p>
       <form className="form" method="post" onSubmit={onSubmit} noValidate>

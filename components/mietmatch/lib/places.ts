@@ -1,14 +1,9 @@
 import { DISTRICTS, type District, type LandlordFlat, type Listing } from '../types'
-import {
-  findListingByAddress,
-  geocodeAddress,
-  isBerlin,
-  nearestListing,
-} from './lookup'
+import { geocodeAddress, isBerlin } from './lookup'
+import { emptyBerlinFacts, type ResolveFail, type ResolveOk, type ResolveResult } from './flat-setup'
 
-export type ResolveOk = { ok: true; draft: Omit<LandlordFlat, 'id' | 'addedAt'> }
-export type ResolveFail = { ok: false; reason: 'missing' | 'outside'; label?: string }
-export type ResolveResult = ResolveOk | ResolveFail
+export type { ResolveFail, ResolveOk, ResolveResult }
+export { emptyBerlinFacts, isPlaceholderFlat, buildFlatDraft } from './flat-setup'
 
 export function asDistrict(value: string): District {
   const needle = value.toLowerCase()
@@ -57,47 +52,47 @@ export function sameAddress(left: string, right: string) {
   return a.length >= 4 && (a === b || a.includes(b) || b.includes(a))
 }
 
+/** @deprecated Prefer buildFlatDraft — sample listing lookup filled placeholder rent/rooms. */
 export async function resolveAddress(query: string): Promise<ResolveResult> {
   const trimmed = query.trim()
   if (!trimmed) return { ok: false, reason: 'missing' }
 
-  const matched = findListingByAddress(trimmed)
-  if (matched) {
+  const hit = await geocodeAddress(trimmed)
+  if (!hit) {
+    if (!/berlin/i.test(trimmed)) return { ok: false, reason: 'missing' }
+    const district = asDistrict(trimmed)
     return {
       ok: true,
       draft: {
-        address: matched.address,
-        district: matched.district,
-        bezirk: matched.bezirk,
-        lat: matched.lat,
-        lng: matched.lng,
-        rentWarm: matched.rentWarm,
-        rooms: matched.rooms,
-        sqm: matched.sqm,
-        berlin: matched.berlin,
-        sourceNote: 'Berlin open-data preview for this street profile.',
+        address: trimmed,
+        district,
+        bezirk: district,
+        lat: 52.52,
+        lng: 13.405,
+        rentWarm: 0,
+        rooms: 0,
+        sqm: 0,
+        berlin: emptyBerlinFacts(),
+        sourceNote: trimmed,
       },
     }
   }
-
-  const hit = await geocodeAddress(trimmed)
-  if (!hit) return { ok: false, reason: 'missing' }
   if (!isBerlin(hit, trimmed)) return { ok: false, reason: 'outside', label: hit.label }
 
-  const nearest = nearestListing(hit.lat, hit.lng)
+  const district = hit.district || asDistrict(hit.label)
   return {
     ok: true,
     draft: {
-      address: hit.label,
-      district: hit.district || nearest.listing.district,
-      bezirk: nearest.listing.bezirk,
+      address: hit.label || trimmed,
+      district,
+      bezirk: district,
       lat: hit.lat,
       lng: hit.lng,
-      rentWarm: nearest.listing.rentWarm,
-      rooms: nearest.listing.rooms,
-      sqm: nearest.listing.sqm,
-      berlin: nearest.listing.berlin,
-      sourceNote: `Preview score from the nearest sample street, ${nearest.listing.address}, about ${nearest.meters} m away.`,
+      rentWarm: 0,
+      rooms: 0,
+      sqm: 0,
+      berlin: emptyBerlinFacts(),
+      sourceNote: hit.label || trimmed,
     },
   }
 }

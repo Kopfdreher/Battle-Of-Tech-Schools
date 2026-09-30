@@ -20,6 +20,7 @@ import {
   sessionKey,
   writeJson,
 } from '../lib/storage'
+import { isPlaceholderFlat } from '../lib/flat-setup'
 import type {
   Applicant,
   Invitation,
@@ -58,8 +59,11 @@ function restoreDisplayName<T extends Applicant>(item: T): T {
 function loadFlat(userId: string) {
   const raw = readJson<LandlordFlat | null>(flatKey(userId), null)
   if (!raw || typeof raw.id !== 'string') return null
-  // Drop old demo listings so landlords start from real data.
-  if (raw.id.startsWith('demo-flat-')) return null
+  // Drop old demo / sample listings so landlords start from real data.
+  if (isPlaceholderFlat(raw)) {
+    removeKey(flatKey(userId))
+    return null
+  }
   return raw
 }
 
@@ -137,7 +141,7 @@ function resolveOnboardingDone(
 type ServerBoard = { flat: LandlordFlat; applicants: Applicant[] }
 
 function withBoard(state: SessionState, board: ServerBoard | null): SessionState {
-  if (!board) return state
+  if (!board || isPlaceholderFlat(board.flat)) return state
   return {
     ...state,
     flat: board.flat,
