@@ -2527,6 +2527,19 @@ body:has(.auth)::before {
   min-height: 0;
   height: auto;
 }
+.address-setup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.address-setup-grid .field input {
+  width: 100%;
+}
+@media (max-width: 720px) {
+  .address-setup-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .address-box textarea {
   min-height: 72px;
   height: auto;

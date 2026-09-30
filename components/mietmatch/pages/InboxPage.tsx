@@ -92,14 +92,11 @@ export function InboxPage() {
       {!flat ? (
         <section className="panel address-box inbox-start">
           <p className="kicker">{t('inbox.flat')}</p>
-          <h2>{t('inbox.addFlat')}</h2>
+          <h2>{t('inbox.setupFlat')}</h2>
           <p className="lede">{t('inbox.needFlat')}</p>
           <div className="place-actions">
             <Link className="btn slim primary" to="/address">
-              {t('inbox.addFlat')}
-            </Link>
-            <Link className="btn slim" to="/import">
-              {t('inbox.getApplicants')}
+              {t('inbox.setupFlat')}
             </Link>
           </div>
         </section>
